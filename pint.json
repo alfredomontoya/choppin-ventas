@@ -1,0 +1,14 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "declare_strict_types": true,
+        "no_superfluous_phpdoc_tags": true,
+        "concat_space": {
+            "spacing": "one"
+        },
+        "ordered_imports": {
+            "sort_algorithm": "alpha"
+        },
+        "single_line_empty_body": true
+    }
+}

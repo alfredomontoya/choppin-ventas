@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoriaProductoController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\OrdenCompraController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\VentaController;
@@ -34,10 +35,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('categoria-productos', CategoriaProductoController::class)->names('categoria_productos');
 
     Route::get('productos/exportar', [ProductoController::class, 'exportar'])->name('productos.exportar');
+    Route::post('productos/{producto}/favorito', [ProductoController::class, 'toggleFavorito'])->name('productos.favorito');
     Route::resource('productos', ProductoController::class);
 
     Route::get('ventas/exportar', [VentaController::class, 'exportar'])->name('ventas.exportar');
     Route::resource('ventas', VentaController::class);
+
+    Route::get('compras/exportar', [OrdenCompraController::class, 'exportar'])->name('compras.exportar');
+    Route::post('compras/{ordene}/recibir', [OrdenCompraController::class, 'recibir'])->name('compras.recibir');
+    Route::resource('compras', OrdenCompraController::class);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

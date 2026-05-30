@@ -30,6 +30,8 @@ class Venta extends Model
         'igv',
         'descuento',
         'total',
+        'monto_recibido',
+        'cambio',
         'tipo_pago',
         'observaciones',
         'estado',
@@ -44,6 +46,8 @@ class Venta extends Model
             'igv' => 'decimal:2',
             'descuento' => 'decimal:2',
             'total' => 'decimal:2',
+            'monto_recibido' => 'decimal:2',
+            'cambio' => 'decimal:2',
         ];
     }
 

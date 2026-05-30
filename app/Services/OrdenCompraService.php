@@ -7,12 +7,47 @@ namespace App\Services;
 use App\Enums\TipoMovimientoStock;
 use App\Models\DetalleOrdenCompra;
 use App\Models\OrdenCompra;
+use App\Models\Producto;
+use Illuminate\Http\Request;
 
 class OrdenCompraService
 {
     public function __construct(
         private readonly StockService $stockService,
     ) {}
+
+    public function listar(Request $request)
+    {
+        return OrdenCompra::with('proveedor', 'user')
+            ->applyFilters($request)
+            ->applySorting($request)
+            ->paginate($request->input('por_pagina', 10))
+            ->withQueryString();
+    }
+
+    public function obtenerPorId(int $id): OrdenCompra
+    {
+        return OrdenCompra::with(['proveedor', 'user', 'detalle.producto'])->findOrFail($id);
+    }
+
+    public function actualizar(int $id, array $data): OrdenCompra
+    {
+        $orden = $this->obtenerPorId($id);
+        $orden->update($data);
+        return $orden;
+    }
+
+    public function eliminar(int $id): void
+    {
+        $orden = $this->obtenerPorId($id);
+        $orden->delete();
+    }
+
+    public function queryParaExportar(Request $request)
+    {
+        return OrdenCompra::with('proveedor', 'user')
+            ->applyFilters($request);
+    }
 
     public function recibirOrden(OrdenCompra $ordenCompra): OrdenCompra
     {
@@ -29,7 +64,7 @@ class OrdenCompraService
                 $this->stockService->registrarMovimiento(
                     producto: $detalle->producto,
                     tipo: TipoMovimientoStock::IngresoCompra,
-                    cantidad: $detalle->cantidad,
+                    cantidad: (float) $detalle->cantidad,
                     motivo: "Orden de compra #{$ordenCompra->numero_comprobante}",
                     referencia: $ordenCompra,
                 );

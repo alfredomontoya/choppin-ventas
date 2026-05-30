@@ -4,11 +4,12 @@ import { PropsWithChildren, useState } from 'react';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: '◻' },
   { name: 'Ventas', href: '/ventas', icon: '🛒' },
+  { name: 'Compras', href: '/compras', icon: '📦' },
   { name: 'Clientes', href: '/clientes', icon: '👥' },
   { name: 'Productos', href: '/productos', icon: '📦' },
   { name: 'Categorías', href: '/categoria-productos', icon: '🏷️' },
   { name: 'Proveedores', href: '/proveedores', icon: '🚚' },
-  { name: 'Compras', href: '#', icon: '📋' },
+
   { name: 'Almacén', href: '#', icon: '🏭' },
   { name: 'Reportes', href: '#', icon: '📊' },
   { name: 'Admin', href: '#', icon: '⚙' },

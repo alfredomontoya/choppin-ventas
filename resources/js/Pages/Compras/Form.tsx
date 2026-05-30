@@ -2,17 +2,15 @@ import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import Autocomplete from '@/Components/ui/Autocomplete';
-import FavoritosGrid from '@/Components/ui/FavoritosGrid';
 import Modal from '@/Components/Modal';
 import { Link, useForm } from '@inertiajs/react';
-import { useEffect, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-interface ClienteOption {
+interface ProveedorOption {
   id: number;
   nombre: string;
-  apellido: string;
-  tipo_documento: string;
-  numero_documento: string;
+  contacto: string;
+  nit_ci: string;
 }
 
 interface ProductoOption {
@@ -20,84 +18,65 @@ interface ProductoOption {
   nombre: string;
   codigo: string;
   imagen: string | null;
-  stock_actual: number;
   categoria?: { nombre: string } | null;
-  precios?: { precio_venta: number; fecha_inicio: string; fecha_fin: string | null }[];
-  precio_venta?: number;
 }
 
 interface Props {
-  venta?: any;
+  orden?: any;
   return_url?: string;
-  clientes: ClienteOption[];
+  proveedores: ProveedorOption[];
   productos: ProductoOption[];
-  productosFavoritos: ProductoOption[];
 }
 
-export default function Form({ venta, return_url, clientes, productos, productosFavoritos }: Props) {
-  const isEdit = !!venta;
+export default function Form({ orden, return_url, proveedores, productos }: Props) {
+  const isEdit = !!orden;
 
   const { data, setData, post, put, processing, errors } = useForm({
-    cliente_id: venta?.cliente_id ?? '',
-    tipo_comprobante: venta?.tipo_comprobante ?? 'boleta',
-    tipo_pago: venta?.tipo_pago ?? 'efectivo',
-    descuento: venta?.descuento ?? 0,
-    monto_recibido: venta?.monto_recibido ?? '',
-    cambio: venta?.cambio ?? '',
-    observaciones: venta?.observaciones ?? '',
-    detalles: venta?.detalle?.map((d: any) => ({
+    proveedor_id: orden?.proveedor_id ?? '',
+    tipo_comprobante: orden?.tipo_comprobante ?? 'factura',
+    observaciones: orden?.observaciones ?? '',
+    detalles: orden?.detalle?.map((d: any) => ({
       producto_id: d.producto_id,
       cantidad: Number(d.cantidad),
-    })) ?? [] as { producto_id: number; cantidad: number }[],
+      precio_unitario: Number(d.precio_unitario),
+    })) ?? [] as { producto_id: number; cantidad: number; precio_unitario: number }[],
     return_url: return_url ?? '',
   });
 
-  const getPrecioVenta = useCallback((producto: ProductoOption): number => {
-    if (producto.precio_venta !== undefined) return Number(producto.precio_venta);
-    if (!producto.precios?.length) return 0;
-    const hoy = new Date().toISOString().slice(0, 10);
-    const d = (v: string) => (v ?? '').slice(0, 10);
-    const vigente = producto.precios
-      .filter((p) => d(p.fecha_inicio) <= hoy && (!p.fecha_fin || d(p.fecha_fin) >= hoy))
-      .sort((a, b) => b.fecha_inicio.localeCompare(a.fecha_inicio))[0];
-    return vigente ? Number(vigente.precio_venta) : 0;
-  }, []);
-
   const productoMap = new Map(productos.map((p: ProductoOption) => [p.id, p]));
 
-  const detalleConInfo = data.detalles.map((d: { producto_id: number; cantidad: number }) => {
+  const detalleConInfo = data.detalles.map((d: { producto_id: number; cantidad: number; precio_unitario: number }) => {
     const p = productoMap.get(d.producto_id);
     return {
       ...d,
       nombre: p?.nombre ?? '—',
       codigo: p?.codigo ?? '',
       imagen: p?.imagen ?? null,
-      precio_unitario: p ? getPrecioVenta(p) : 0,
-      subtotal: p ? getPrecioVenta(p) * d.cantidad : 0,
+      subtotal: d.precio_unitario * d.cantidad,
     };
   });
 
   const subtotal = detalleConInfo.reduce((sum: number, d: { subtotal: number }) => sum + d.subtotal, 0);
-  const descuentoNum = Number(data.descuento) || 0;
-  const total = subtotal - descuentoNum;
+  const igv = subtotal * 0.18;
+  const total = subtotal + igv;
 
-  const agregarODimensionar = (productoId: number, cantidad: number = 1) => {
+  const agregarProducto = (productoId: number, cantidad: number = 1, precio: number = 0) => {
     const idx = data.detalles.findIndex((d: { producto_id: number }) => d.producto_id === productoId);
     if (idx >= 0) {
-      const nuevos = [...data.detalles] as { producto_id: number; cantidad: number }[];
+      const nuevos = [...data.detalles] as { producto_id: number; cantidad: number; precio_unitario: number }[];
       nuevos[idx] = { ...nuevos[idx], cantidad: nuevos[idx].cantidad + cantidad };
       setData('detalles', nuevos);
     } else {
-      setData('detalles', [...data.detalles, { producto_id: productoId, cantidad }]);
+      setData('detalles', [...data.detalles, { producto_id: productoId, cantidad, precio_unitario: precio }]);
     }
   };
 
   const handleSelectProducto = (producto: ProductoOption) => {
-    agregarODimensionar(producto.id, 1);
+    agregarProducto(producto.id, 1, 0);
   };
 
-  const handleSelectCliente = (cliente: ClienteOption) => {
-    setData('cliente_id', cliente.id);
+  const handleSelectProveedor = (proveedor: ProveedorOption) => {
+    setData('proveedor_id', proveedor.id);
   };
 
   const eliminarDetalle = (index: number) => {
@@ -105,23 +84,26 @@ export default function Form({ venta, return_url, clientes, productos, productos
   };
 
   const actualizarCantidad = (index: number, nuevaCantidad: number) => {
-    const nuevos = [...data.detalles] as { producto_id: number; cantidad: number }[];
+    const nuevos = [...data.detalles] as { producto_id: number; cantidad: number; precio_unitario: number }[];
     nuevos[index] = { ...nuevos[index], cantidad: nuevaCantidad };
     setData('detalles', nuevos);
   };
 
+  const actualizarPrecio = (index: number, nuevoPrecio: number) => {
+    const nuevos = [...data.detalles] as { producto_id: number; cantidad: number; precio_unitario: number }[];
+    nuevos[index] = { ...nuevos[index], precio_unitario: nuevoPrecio };
+    setData('detalles', nuevos);
+  };
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [montoRecibido, setMontoRecibido] = useState<string>('0');
 
   const submit = (e?: React.FormEvent | React.MouseEvent) => {
     e?.preventDefault();
     if (isEdit) {
-      put(route('ventas.update', venta.id));
+      put(route('compras.update', orden.id));
     } else {
-      setData('monto_recibido', montoRecibido);
-      setData('cambio', cambio.toFixed(2));
       setTimeout(() => {
-        post(route('ventas.store'), {
+        post(route('compras.store'), {
           onSuccess: () => setShowConfirmModal(false),
         });
       }, 0);
@@ -130,14 +112,11 @@ export default function Form({ venta, return_url, clientes, productos, productos
 
   const abrirConfirmacion = (e: React.MouseEvent) => {
     e.preventDefault();
-    setMontoRecibido(total > 0 ? total.toFixed(2) : '0');
     setShowConfirmModal(true);
   };
 
-  const cambio = Math.max(0, (parseFloat(montoRecibido) || 0) - total);
-
-  const clienteSeleccionado = data.cliente_id
-    ? clientes.find((c) => c.id === data.cliente_id)
+  const proveedorSeleccionado = data.proveedor_id
+    ? proveedores.find((p: ProveedorOption) => p.id === data.proveedor_id)
     : null;
 
   return (
@@ -145,9 +124,9 @@ export default function Form({ venta, return_url, clientes, productos, productos
     {!isEdit && (
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Nueva Venta</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Nueva Orden de Compra</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Registra una nueva venta seleccionando los productos.
+            Crea una orden de compra para tu proveedor.
           </p>
         </div>
         <div className="text-right">
@@ -161,50 +140,53 @@ export default function Form({ venta, return_url, clientes, productos, productos
     <form onSubmit={submit} className="space-y-6">
       {!isEdit && (
         <>
-          {/* SECCIÓN 1: Datos de la venta — grid 2 columnas */}
+          {/* SECCIÓN 1: Datos de la orden — grid 2 columnas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Cliente */}
+            {/* Proveedor */}
             <div>
-              <InputLabel htmlFor="cliente_autocomplete" value="Cliente" />
-              <Autocomplete<ClienteOption>
-                items={clientes}
-                placeholder="Buscar por nombre o documento..."
-                filterFn={(cliente, query) => {
+              <div className="flex items-center gap-1">
+                <InputLabel htmlFor="proveedor_autocomplete" value="Proveedor" />
+                <span className="text-red-500 text-sm">*</span>
+              </div>
+              <Autocomplete<ProveedorOption>
+                items={proveedores}
+                placeholder="Buscar por nombre, contacto o NIT/CI..."
+                filterFn={(proveedor, query) => {
                   const q = query.toLowerCase();
                   return (
-                    cliente.nombre.toLowerCase().includes(q) ||
-                    cliente.apellido.toLowerCase().includes(q) ||
-                    cliente.numero_documento.toLowerCase().includes(q)
+                    proveedor.nombre.toLowerCase().includes(q) ||
+                    proveedor.contacto.toLowerCase().includes(q) ||
+                    proveedor.nit_ci.toLowerCase().includes(q)
                   );
                 }}
-                renderItem={(cliente, highlighted) => (
+                renderItem={(proveedor, highlighted) => (
                   <div className={`px-3 py-2 ${highlighted ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}>
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      {cliente.nombre} {cliente.apellido}
+                      {proveedor.nombre}
                     </p>
                     <p className="text-xs text-slate-400">
-                      {cliente.tipo_documento.toUpperCase()}: {cliente.numero_documento}
+                      {proveedor.contacto} · NIT: {proveedor.nit_ci}
                     </p>
                   </div>
                 )}
-                onSelect={handleSelectCliente}
+                onSelect={handleSelectProveedor}
                 inputClassName="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              {clienteSeleccionado && (
+              {proveedorSeleccionado && (
                 <div className="mt-1.5 flex items-center justify-between px-3 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-sm">
                   <span className="text-indigo-700 dark:text-indigo-300">
-                    {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                    {proveedorSeleccionado.nombre}
                   </span>
                   <button
                     type="button"
-                    onClick={() => setData('cliente_id', '')}
+                    onClick={() => setData('proveedor_id', '')}
                     className="text-indigo-400 hover:text-indigo-600 text-xs"
                   >
                     ✕
                   </button>
                 </div>
               )}
-              <InputError message={errors.cliente_id} className="mt-2" />
+              <InputError message={errors.proveedor_id} className="mt-2" />
             </div>
 
             {/* Tipo Comprobante */}
@@ -219,60 +201,10 @@ export default function Form({ venta, return_url, clientes, productos, productos
                 onChange={(e) => setData('tipo_comprobante', e.target.value)}
                 className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="boleta">Boleta</option>
                 <option value="factura">Factura</option>
+                <option value="boleta">Boleta</option>
               </select>
               <InputError message={errors.tipo_comprobante} className="mt-2" />
-            </div>
-
-            {/* Tipo Pago — Radio Buttons */}
-            <div>
-              <div className="flex items-center gap-1">
-                <InputLabel value="Tipo de Pago" />
-                <span className="text-red-500 text-sm">*</span>
-              </div>
-              <div className="mt-1.5 flex flex-wrap gap-3">
-                {[
-                  { value: 'efectivo', label: 'Efectivo' },
-                  { value: 'tarjeta', label: 'Tarjeta' },
-                  { value: 'transferencia', label: 'Transferencia' },
-                ].map((op) => (
-                  <label
-                    key={op.value}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all text-sm ${
-                      data.tipo_pago === op.value
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
-                        : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-400'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="tipo_pago"
-                      value={op.value}
-                      checked={data.tipo_pago === op.value}
-                      onChange={(e) => setData('tipo_pago', e.target.value)}
-                      className="accent-indigo-600"
-                    />
-                    {op.label}
-                  </label>
-                ))}
-              </div>
-              <InputError message={errors.tipo_pago} className="mt-2" />
-            </div>
-
-            {/* Descuento */}
-            <div>
-              <InputLabel htmlFor="descuento" value="Descuento (Bs)" />
-              <input
-                id="descuento"
-                type="number"
-                min="0"
-                step="0.01"
-                value={data.descuento}
-                onChange={(e) => setData('descuento', e.target.value as any)}
-                className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <InputError message={errors.descuento} className="mt-2" />
             </div>
           </div>
 
@@ -308,21 +240,10 @@ export default function Form({ venta, return_url, clientes, productos, productos
                       <p className="text-xs text-slate-400 truncate">{producto.categoria?.nombre ?? ''}</p>
                       <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{producto.nombre}</p>
                     </div>
-                    <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
-                      Bs {getPrecioVenta(producto).toFixed(2)}
-                    </p>
                   </div>
                 )}
                 onSelect={handleSelectProducto}
                 inputClassName="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            {/* Favoritos */}
-            <div className="mb-4">
-              <FavoritosGrid
-                productos={productosFavoritos}
-                onAgregar={(p) => agregarODimensionar(p.id, 1)}
               />
             </div>
 
@@ -358,8 +279,15 @@ export default function Form({ venta, return_url, clientes, productos, productos
                             <span className="truncate">{d.codigo} — {d.nombre}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300">
-                          Bs {d.precio_unitario.toFixed(2)}
+                        <td className="px-3 py-2 text-right">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={d.precio_unitario}
+                            onChange={(e) => actualizarPrecio(i, parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-2 py-1 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
                         </td>
                         <td className="px-3 py-2 text-right">
                           <input
@@ -396,17 +324,15 @@ export default function Form({ venta, return_url, clientes, productos, productos
                       </td>
                       <td></td>
                     </tr>
-                    {descuentoNum > 0 && (
-                      <tr>
-                        <td colSpan={3} className="px-3 py-1 text-right text-sm text-slate-500">
-                          Descuento
-                        </td>
-                        <td className="px-3 py-1 text-right text-sm text-red-500">
-                          -Bs {descuentoNum.toFixed(2)}
-                        </td>
-                        <td></td>
-                      </tr>
-                    )}
+                    <tr>
+                      <td colSpan={3} className="px-3 py-1 text-right text-sm text-slate-500">
+                        IGV (18%)
+                      </td>
+                      <td className="px-3 py-1 text-right text-sm text-slate-500">
+                        Bs {igv.toFixed(2)}
+                      </td>
+                      <td></td>
+                    </tr>
                     <tr>
                       <td colSpan={3} className="px-3 py-2 text-right text-base font-bold text-slate-900 dark:text-white">
                         Total
@@ -420,7 +346,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-slate-400 text-center py-6">Agregue productos a la venta</p>
+              <p className="text-sm text-slate-400 text-center py-6">Agregue productos a la orden</p>
             )}
           </div>
         </>
@@ -445,10 +371,10 @@ export default function Form({ venta, return_url, clientes, productos, productos
           onClick={isEdit ? undefined : abrirConfirmacion}
           type={isEdit ? 'submit' : 'button'}
         >
-          {processing ? 'Guardando...' : isEdit ? 'Actualizar' : 'Registrar Venta'}
+          {processing ? 'Guardando...' : isEdit ? 'Actualizar' : 'Crear Orden de Compra'}
         </PrimaryButton>
         <Link
-          href={route('ventas.index')}
+          href={route('compras.index')}
           className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         >
           Cancelar
@@ -461,7 +387,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
         <Modal show={showConfirmModal} onClose={() => setShowConfirmModal(false)} maxWidth="sm">
           <div className="p-6">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-              Confirmar Venta
+              Confirmar Orden de Compra
             </h3>
 
             <div className="space-y-4">
@@ -471,32 +397,11 @@ export default function Form({ venta, return_url, clientes, productos, productos
                   Bs {total.toFixed(2)}
                 </span>
               </div>
-
-              <div>
-                <InputLabel htmlFor="monto_recibido" value="Monto recibido" />
-                <input
-                  id="monto_recibido"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={montoRecibido}
-                  onChange={(e) => setMontoRecibido(e.target.value)}
-                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex justify-between items-center py-2 border-t border-slate-200 dark:border-slate-700">
-                <span className="text-sm text-slate-500 dark:text-slate-400">Cambio</span>
-                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                  Bs {cambio.toFixed(2)}
-                </span>
-              </div>
             </div>
 
             <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
-              <PrimaryButton disabled={processing || (parseFloat(montoRecibido) || 0) < total} onClick={submit}>
-                {processing ? 'Guardando...' : 'Confirmar Venta'}
+              <PrimaryButton disabled={processing} onClick={submit}>
+                {processing ? 'Guardando...' : 'Confirmar Orden'}
               </PrimaryButton>
               <button
                 type="button"

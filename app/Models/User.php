@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -39,5 +40,12 @@ class User extends Authenticatable
             'activo' => 'boolean',
             'ultimo_acceso' => 'datetime',
         ];
+    }
+
+    public function productosFavoritos(): BelongsToMany
+    {
+        return $this->belongsToMany(Producto::class, 'producto_user_favoritos')
+            ->withTimestamps()
+            ->with(['categoria', 'precios']);
     }
 }

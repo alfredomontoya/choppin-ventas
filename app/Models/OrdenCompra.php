@@ -10,12 +10,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasCreadorActualizador;
 use App\Traits\HasEliminador;
+use App\Traits\HasFiltros;
 
 class OrdenCompra extends Model
 {
     protected $table = 'ordenes_compra';
 
-    use SoftDeletes, HasCreadorActualizador, HasEliminador;
+    use SoftDeletes, HasCreadorActualizador, HasEliminador, HasFiltros;
 
     protected $fillable = [
         'proveedor_id',
@@ -41,6 +42,11 @@ class OrdenCompra extends Model
             'igv' => 'decimal:2',
             'total' => 'decimal:2',
         ];
+    }
+
+    public function getSearchColumns(): array
+    {
+        return ['numero_comprobante', 'observaciones'];
     }
 
     public function proveedor(): BelongsTo

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\MovimientoStock;
 use App\Models\Producto;
 use App\Enums\TipoMovimientoStock;
+use Illuminate\Database\Eloquent\Model;
 
 class StockService
 {

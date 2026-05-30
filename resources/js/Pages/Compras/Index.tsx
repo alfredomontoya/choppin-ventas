@@ -8,37 +8,29 @@ import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import HighlightText from '@/Components/ui/HighlightText';
 
-const initials = (name: string) => name.slice(0, 2).toUpperCase();
-const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-purple-500', 'bg-teal-500', 'bg-pink-500'];
-
-function ImageCell({ src, name }: { src: string | null; name: string }) {
-  if (src) {
-    return <img src={src} alt={name} className="w-10 h-10 rounded-lg object-cover" />;
-  }
-  return (
-    <div className={`w-10 h-10 rounded-lg ${colors[name.length % colors.length]} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
-      {initials(name)}
-    </div>
-  );
-}
-
 const columnas = [
-  { key: 'imagen', label: '', render: (p: any) => <ImageCell src={p.imagen ?? null} name={p.nombre} /> },
-  { key: 'codigo', label: 'Código' },
-  { key: 'nombre', label: 'Nombre' },
-  { key: 'categoria', label: 'Categoría', render: (p: any) => p.categoria?.nombre ?? '—' },
-  { key: 'stock_actual', label: 'Stock' },
-  { key: 'unidad_medida', label: 'Unidad' },
-  { key: 'activo', label: 'Estado', render: (p: any) => p.activo ? 'Activo' : 'Inactivo' },
+  { key: 'numero_comprobante', label: 'Comprobante' },
+  { key: 'proveedor', label: 'Proveedor', render: (v: any) => v.proveedor?.nombre ?? '—' },
+  { key: 'tipo_comprobante', label: 'Tipo', render: (v: any) => v.tipo_comprobante === 'factura' ? 'Factura' : 'Boleta' },
+  { key: 'fecha_emision', label: 'Fecha', render: (v: any) => new Date(v.fecha_emision).toLocaleDateString('es-BO') },
+  { key: 'total', label: 'Total', render: (v: any) => `Bs ${Number(v.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
+  { key: 'estado', label: 'Estado', render: (v: any) => (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+      v.estado === 'recibido' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+      v.estado === 'pendiente' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+      'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+    }`}>
+      {v.estado === 'recibido' ? 'Recibido' : v.estado === 'pendiente' ? 'Pendiente' : 'Anulado'}
+    </span>
+  )},
 ];
 
-export default function Index({ productos, filtros, productosFavoritos }: { productos: any; filtros: any; productosFavoritos?: number[] }) {
+export default function Index({ ordenes, filtros }: { ordenes: any; filtros: any }) {
   const { flash } = usePage().props as any;
   const [search, setSearch] = useState<string>(filtros.busqueda ?? '');
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [favoritos, setFavoritos] = useState<Set<number>>(
-    () => new Set(productosFavoritos ?? [])
-  );
+  const [anularId, setAnularId] = useState<number | null>(null);
+
+  const porPaginaDefault = window.innerWidth < 768 ? 5 : 10;
 
   useEffect(() => {
     if (flash?.success) toast.success(flash.success);
@@ -49,13 +41,13 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
     if (filtros.por_pagina === undefined) {
       const pp = window.innerWidth < 768 ? 5 : 10;
       if (pp !== 10) {
-        router.get(route('productos.index', { ...filtros, por_pagina: pp, busqueda: search || undefined }), {}, { replace: true });
+        router.get(route('compras.index', { ...filtros, por_pagina: pp, busqueda: search || undefined }), {}, { replace: true });
       }
     }
   }, []);
 
   const aplicarFiltros = () => {
-    router.get(route('productos.index'), {
+    router.get(route('compras.index'), {
       ...filtros,
       busqueda: search || undefined,
       page: 1,
@@ -63,19 +55,16 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      aplicarFiltros();
-    }
+    if (e.key === 'Enter') aplicarFiltros();
   };
 
   const limpiarFiltros = () => {
     setSearch('');
-    router.get(route('productos.index'), {}, { preserveState: true, replace: true });
+    router.get(route('compras.index'), {}, { preserveState: true, replace: true });
   };
 
   const ordenar = (columna: string) => {
-    router.get(route('productos.index'), {
+    router.get(route('compras.index'), {
       ...filtros,
       orden: columna,
       direccion: filtros.orden === columna && filtros.direccion === 'asc' ? 'desc' : 'asc',
@@ -84,47 +73,28 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
   };
 
   const cambiarPagina = (params: Record<string, any>) => {
-    router.get(route('productos.index'), { ...filtros, ...params, busqueda: search }, { preserveState: true, replace: true });
+    router.get(route('compras.index'), { ...filtros, ...params, busqueda: search }, { preserveState: true, replace: true });
   };
 
-  const confirmarEliminar = (id: number) => setDeleteId(id);
+  const confirmarAnular = (id: number) => setAnularId(id);
 
-  const eliminar = () => {
-    if (!deleteId) return;
-    router.delete(route('productos.destroy', deleteId), {
-      onSuccess: () => setDeleteId(null),
+  const anular = () => {
+    if (!anularId) return;
+    router.delete(route('compras.destroy', anularId), {
+      onSuccess: () => setAnularId(null),
     });
   };
 
-  const toggleFavorito = (id: number) => {
-    setFavoritos((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-    router.post(route('productos.favorito', id), {}, {
-      preserveState: true,
-      preserveScroll: true,
-      onError: () => {
-        setFavoritos((prev) => {
-          const next = new Set(prev);
-          if (next.has(id)) next.delete(id); else next.add(id);
-          return next;
-        });
-      },
-    });
-  };
-
-  const resultados = productos.total ?? 0;
+  const resultados = ordenes.total ?? 0;
   const filtrosActivos = search !== '';
 
   return (
     <>
-      <Head title="Productos" />
+      <Head title="Órdenes de Compra" />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Productos</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Órdenes de Compra</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {filtrosActivos
                 ? `Se encontraron ${resultados} ${resultados === 1 ? 'coincidencia' : 'coincidencias'}`
@@ -133,10 +103,10 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
             </p>
           </div>
           <Link
-            href={route('productos.create', { return_url: window.location.href })}
+            href={route('compras.create', { return_url: window.location.href })}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
           >
-            + Nuevo Producto
+            + Nueva Orden
           </Link>
         </div>
 
@@ -145,7 +115,7 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <input
                 type="text"
-                placeholder="Buscar por nombre, código o descripción..."
+                placeholder="Buscar por comprobante..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -155,7 +125,7 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
                 <button
                   onClick={() => {
                     setSearch('');
-                    router.get(route('productos.index'), { ...filtros, busqueda: undefined }, { preserveState: true });
+                    router.get(route('compras.index'), { ...filtros, busqueda: undefined }, { preserveState: true });
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
@@ -163,14 +133,14 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
                 </button>
               )}
             </div>
-            <button type="button" onClick={aplicarFiltros} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700 transition-colors">
+            <button onClick={aplicarFiltros} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700 transition-colors">
               Buscar
             </button>
             <button onClick={limpiarFiltros} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
               Limpiar
             </button>
             <button
-              onClick={() => { window.location.href = route('productos.exportar', filtros); }}
+              onClick={() => { window.location.href = route('compras.exportar', filtros); }}
               className="px-4 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
             >
               Exportar Excel
@@ -181,9 +151,6 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
             <table className="w-full text-sm min-w-[700px]">
               <thead className="border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-2 py-3 text-center text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-10">
-                    Fav
-                  </th>
                   {columnas.map((col) => (
                     <TableHeader
                       key={col.key}
@@ -200,48 +167,33 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {productos.data?.length === 0 ? (
+                {ordenes.data?.length === 0 ? (
                   <tr>
-                    <td colSpan={columnas.length + 2} className="px-4 py-12 text-center text-slate-400">
-                      No se encontraron productos.
+                    <td colSpan={columnas.length + 1} className="px-4 py-12 text-center text-slate-400">
+                      No se encontraron órdenes de compra.
                     </td>
                   </tr>
                 ) : (
-                  productos.data?.map((item: any) => (
+                  ordenes.data?.map((item: any) => (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="px-2 py-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => toggleFavorito(item.id)}
-                          className={`p-1 rounded-lg transition-colors ${
-                            favoritos.has(item.id)
-                              ? 'text-amber-400 hover:text-amber-500'
-                              : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'
-                          }`}
-                          title={favoritos.has(item.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                        >
-                          {favoritos.has(item.id) ? '★' : '☆'}
-                        </button>
-                      </td>
                       {columnas.map((col) => (
                         <td key={col.key} className="px-4 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap lg:whitespace-normal">
                           {filtros.busqueda
-                            ? <HighlightText text={col.render ? col.render(item) : String(item[col.key] ?? '')} query={filtros.busqueda} />
+                            ? <HighlightText text={col.render ? String(col.render(item)) : String(item[col.key] ?? '')} query={filtros.busqueda} />
                             : (col.render ? col.render(item) : item[col.key])
                           }
                         </td>
                       ))}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={route('productos.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
+                          <Link href={route('compras.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
                             👁
                           </Link>
-                          <Link href={route('productos.edit', item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Editar">
-                            ✏️
-                          </Link>
-                          <button onClick={() => confirmarEliminar(item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Eliminar">
-                            🗑
-                          </button>
+                          {item.estado === 'pendiente' && (
+                            <button onClick={() => confirmarAnular(item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Anular">
+                              🚫
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -252,19 +204,19 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
           </div>
 
           <Pagination
-            meta={productos.meta ?? productos}
-            porPagina={filtros.por_pagina ?? 10}
+            meta={ordenes.meta ?? ordenes}
+            porPagina={filtros.por_pagina ?? porPaginaDefault}
             onChange={cambiarPagina}
           />
         </Card>
       </div>
 
       <ConfirmDialog
-        open={deleteId !== null}
-        onClose={() => setDeleteId(null)}
-        onConfirm={eliminar}
-        title="Confirmar eliminación"
-        message="¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer."
+        open={anularId !== null}
+        onClose={() => setAnularId(null)}
+        onConfirm={anular}
+        title="Confirmar anulación"
+        message="¿Estás seguro de anular esta orden de compra? Esta acción no se puede deshacer."
       />
     </>
   );

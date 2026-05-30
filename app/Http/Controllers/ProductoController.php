@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateProductoRequest;
 use App\Models\CategoriaProducto;
 use App\Models\Producto;
 use App\Services\ProductoService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,9 +26,12 @@ class ProductoController extends Controller
         $productos = $this->service->listar($request);
         $productos->through(fn ($p) => $this->rutasAUrl($p));
 
+        $favoritosIds = auth()->user()->productosFavoritos()->pluck('producto_id');
+
         return inertia('Productos/Index', [
             'productos' => $productos,
             'filtros' => $request->only(['busqueda', 'orden', 'direccion', 'por_pagina']),
+            'productosFavoritos' => $favoritosIds,
         ]);
     }
 
@@ -98,6 +102,16 @@ class ProductoController extends Controller
 
         return redirect()->route('productos.index')
             ->with('success', 'Producto eliminado correctamente.');
+    }
+
+    public function toggleFavorito(Producto $producto): JsonResponse
+    {
+        $user = auth()->user();
+        $esFavorito = $user->productosFavoritos()->toggle($producto->id);
+
+        return response()->json([
+            'favorito' => count($esFavorito['attached']) > 0,
+        ]);
     }
 
     public function exportar(Request $request)

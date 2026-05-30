@@ -1,0 +1,224 @@
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import { Card } from '@/Components/ui/Card';
+import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
+import Modal from '@/Components/Modal';
+import PrimaryButton from '@/Components/PrimaryButton';
+import toast from 'react-hot-toast';
+import { useEffect, useState } from 'react';
+
+const currency = (n: number) => {
+  if (n == null || isNaN(n)) return 'Bs 0.00';
+  return `Bs ${Number(n).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+export default function Show({ orden, url_anterior }: { orden: any; url_anterior?: string }) {
+  const { flash } = usePage().props as any;
+  const [showAnular, setShowAnular] = useState(false);
+  const [showRecibir, setShowRecibir] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    if (flash?.success) toast.success(flash.success);
+    if (flash?.error) toast.error(flash.error);
+  }, [flash]);
+
+  const anular = () => {
+    router.delete(route('compras.destroy', orden.id), {
+      onSuccess: () => setShowAnular(false),
+    });
+  };
+
+  const recibir = () => {
+    setProcessing(true);
+    router.post(route('compras.recibir', orden.id), {}, {
+      onFinish: () => {
+        setProcessing(false);
+        setShowRecibir(false);
+      },
+    });
+  };
+
+  const fields = [
+    { label: 'N° Comprobante', value: orden.numero_comprobante },
+    { label: 'Proveedor', value: orden.proveedor?.nombre ?? '—' },
+    { label: 'NIT/CI Proveedor', value: orden.proveedor?.nit_ci ?? '—' },
+    { label: 'Tipo', value: orden.tipo_comprobante === 'factura' ? 'Factura' : 'Boleta' },
+    { label: 'Fecha de Emisión', value: new Date(orden.fecha_emision).toLocaleString('es-BO') },
+    { label: 'Estado', value: orden.estado === 'recibido' ? 'Recibido' : orden.estado === 'pendiente' ? 'Pendiente' : 'Anulado' },
+    { label: 'Registrado por', value: orden.user?.name ?? '—' },
+  ];
+
+  return (
+    <>
+      <Head title={`Orden #${orden.numero_comprobante}`} />
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Orden #{orden.numero_comprobante}
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {orden.estado === 'recibido' ? 'Orden recibida — stock actualizado' :
+               orden.estado === 'pendiente' ? 'Orden pendiente de recepción' : 'Orden anulada'}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={route('compras.create', { return_url: url_anterior ?? undefined })}
+              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
+            >
+              + Nueva Orden
+            </Link>
+            <Link
+              href={url_anterior ?? route('compras.index')}
+              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              Volver
+            </Link>
+            {orden.estado === 'pendiente' && (
+              <>
+                <Link
+                  href={route('compras.edit', [orden.id, { return_url: url_anterior ?? undefined }])}
+                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"
+                >
+                  Editar
+                </Link>
+                <button
+                  onClick={() => setShowRecibir(true)}
+                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
+                >
+                  Recibir
+                </button>
+                <button
+                  onClick={() => setShowAnular(true)}
+                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-red-600 text-white text-xs md:text-sm hover:bg-red-700 transition-colors"
+                >
+                  Anular
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <Card>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Información de la Orden</h2>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            {fields.map(({ label, value }) => (
+              <div key={label}>
+                <dt className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">{label}</dt>
+                <dd className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+
+        <Card>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Detalle de Productos</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-slate-500 dark:text-slate-400 font-medium">Producto</th>
+                  <th className="px-4 py-3 text-right text-slate-500 dark:text-slate-400 font-medium">P. Unitario</th>
+                  <th className="px-4 py-3 text-right text-slate-500 dark:text-slate-400 font-medium">Cantidad</th>
+                  <th className="px-4 py-3 text-right text-slate-500 dark:text-slate-400 font-medium">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                {orden.detalle?.map((d: any) => (
+                  <tr key={d.id}>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
+                      {d.producto?.codigo} — {d.producto?.nombre}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
+                      {currency(Number(d.precio_unitario))}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
+                      {Number(d.cantidad)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300 font-medium">
+                      {currency(Number(d.subtotal))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="border-t-2 border-slate-200 dark:border-slate-700">
+                <tr>
+                  <td colSpan={3} className="px-4 py-3 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Subtotal
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {currency(Number(orden.subtotal))}
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={3} className="px-4 py-1 text-right text-sm text-slate-500">
+                    IGV (18%)
+                  </td>
+                  <td className="px-4 py-1 text-right text-sm text-slate-500">
+                    {currency(Number(orden.igv))}
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={3} className="px-4 py-3 text-right text-base font-bold text-slate-900 dark:text-white">
+                    Total
+                  </td>
+                  <td className="px-4 py-3 text-right text-base font-bold text-indigo-600 dark:text-indigo-400">
+                    {currency(Number(orden.total))}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </Card>
+
+        {orden.observaciones && (
+          <Card>
+            <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Observaciones</h2>
+            <p className="text-sm text-slate-700 dark:text-slate-300">{orden.observaciones}</p>
+          </Card>
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={showAnular}
+        onClose={() => setShowAnular(false)}
+        onConfirm={anular}
+        title="Confirmar anulación"
+        message={`¿Estás seguro de anular la orden #${orden.numero_comprobante}? Esta acción no se puede deshacer.`}
+      />
+
+      <Modal show={showRecibir} onClose={() => setShowRecibir(false)} maxWidth="sm">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+            Recibir Orden de Compra
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            Al recibir la orden, se incrementará el stock de los productos automáticamente.
+          </p>
+          <div className="flex justify-between items-center py-2 border-y border-slate-200 dark:border-slate-700 mb-4">
+            <span className="text-sm text-slate-500 dark:text-slate-400">Total</span>
+            <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+              {currency(Number(orden.total))}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 pt-2">
+            <PrimaryButton disabled={processing} onClick={recibir}>
+              {processing ? 'Procesando...' : 'Confirmar Recepción'}
+            </PrimaryButton>
+            <button
+              type="button"
+              onClick={() => setShowRecibir(false)}
+              className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+Show.layout = (page: React.ReactNode) => <DashboardLayout>{page}</DashboardLayout>;

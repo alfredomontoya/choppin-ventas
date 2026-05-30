@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasCreadorActualizador;
 use App\Traits\HasEliminador;
@@ -65,5 +66,20 @@ class Producto extends Model
     public function movimientosStock(): HasMany
     {
         return $this->hasMany(MovimientoStock::class);
+    }
+
+    public function favoritos(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'producto_user_favoritos')
+            ->withTimestamps();
+    }
+
+    public function getPrecioVentaAttribute(): float
+    {
+        return (float) ($this->precios
+            ->where('fecha_inicio', '<=', now()->toDateString())
+            ->where(fn ($q) => $q->whereNull('fecha_fin')->orWhere('fecha_fin', '>=', now()->toDateString()))
+            ->sortByDesc('fecha_inicio')
+            ->first()?->precio_venta ?? 0);
     }
 }

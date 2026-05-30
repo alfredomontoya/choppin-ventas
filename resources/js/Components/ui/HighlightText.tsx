@@ -1,5 +1,7 @@
-export default function HighlightText({ text, query }: { text: string; query: string }) {
-  if (!query) return <>{text}</>;
+import type { ReactNode } from 'react';
+
+export default function HighlightText({ text, query }: { text: string | ReactNode; query: string }) {
+  if (!query || typeof text !== 'string') return <>{text}</>;
 
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`(${escaped})`, 'gi');

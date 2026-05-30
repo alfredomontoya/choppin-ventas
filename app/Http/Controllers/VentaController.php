@@ -29,10 +29,14 @@ class VentaController extends Controller
 
     public function create(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         return inertia('Ventas/Create', [
             'return_url' => $request->query('return_url') ?: url()->previous(),
-            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'numero_documento']),
-            'productos' => Producto::with(['categoria', 'precios'])->where('activo', true)->orderBy('nombre')->get(),
+            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'tipo_documento', 'numero_documento']),
+            'productos' => Producto::with(['categoria', 'precios', 'imagenes'])->where('activo', true)->orderBy('nombre')->get(),
+            'productosFavoritos' => $user->productosFavoritos,
         ]);
     }
 
@@ -45,6 +49,8 @@ class VentaController extends Controller
             tipoPago: $data['tipo_pago'],
             clienteId: $data['cliente_id'] ?? null,
             descuento: (float) ($data['descuento'] ?? 0),
+            montoRecibido: isset($data['monto_recibido']) ? (float) $data['monto_recibido'] : null,
+            cambio: isset($data['cambio']) ? (float) $data['cambio'] : null,
             observaciones: $data['observaciones'] ?? null,
         );
 
@@ -77,7 +83,7 @@ class VentaController extends Controller
         return inertia('Ventas/Edit', [
             'venta' => $this->service->obtenerPorId($id),
             'return_url' => $request->query('return_url') ?: url()->previous(),
-            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'numero_documento']),
+            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'tipo_documento', 'numero_documento']),
         ]);
     }
 

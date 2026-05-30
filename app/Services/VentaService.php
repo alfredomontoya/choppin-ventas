@@ -36,6 +36,8 @@ class VentaService
         string $tipoPago,
         ?int $clienteId = null,
         float $descuento = 0,
+        ?float $montoRecibido = null,
+        ?float $cambio = null,
         ?string $observaciones = null,
     ): Venta {
         $igvRate = 0.00;
@@ -73,7 +75,7 @@ class VentaService
         $igv = ($subtotal - $descuento) * $igvRate;
         $total = $subtotal - $descuento + $igv;
 
-        return \DB::transaction(function () use ($detallesData, $tipoComprobante, $tipoPago, $clienteId, $descuento, $observaciones, $subtotal, $igv, $total) {
+        return \DB::transaction(function () use ($detallesData, $tipoComprobante, $tipoPago, $clienteId, $descuento, $montoRecibido, $cambio, $observaciones, $subtotal, $igv, $total) {
             $venta = Venta::create([
                 'user_id' => auth()->id(),
                 'cliente_id' => $clienteId,
@@ -84,6 +86,8 @@ class VentaService
                 'igv' => $igv,
                 'descuento' => $descuento,
                 'total' => $total,
+                'monto_recibido' => $montoRecibido,
+                'cambio' => $cambio,
                 'tipo_pago' => $tipoPago,
                 'observaciones' => $observaciones,
                 'estado' => 'completado',

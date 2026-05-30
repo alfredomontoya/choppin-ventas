@@ -23,6 +23,8 @@ return new class extends Migration
             $table->decimal('igv', 10, 2);
             $table->decimal('descuento', 10, 2)->default(0);
             $table->decimal('total', 10, 2);
+            $table->decimal('monto_recibido', 10, 2)->nullable();
+            $table->decimal('cambio', 10, 2)->nullable();
             $table->string('tipo_pago', 20);
             $table->text('observaciones')->nullable();
             $table->string('estado', 15)->default('completado');

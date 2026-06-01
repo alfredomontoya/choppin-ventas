@@ -25,6 +25,7 @@ class StoreProductoRequest extends FormRequest
             'stock_actual' => ['required', 'numeric', 'min:0'],
             'stock_minimo' => ['required', 'numeric', 'min:0'],
             'unidad_medida' => ['required', 'string', 'max:50'],
+            'margen_utilidad' => ['required', 'numeric', 'min:0', 'max:999.99'],
             'imagenes_nuevas' => ['nullable', 'array', 'max:5'],
             'imagenes_nuevas.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'precio_compra' => ['required', 'numeric', 'min:0'],

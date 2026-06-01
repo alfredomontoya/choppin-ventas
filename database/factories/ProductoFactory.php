@@ -20,8 +20,8 @@ class ProductoFactory extends Factory
             'codigo' => fake()->unique()->bothify('PRO-#####'),
             'nombre' => fake()->word(),
             'descripcion' => fake()->sentence(),
-            'stock_actual' => fake()->randomFloat(2, 0, 500),
-            'stock_minimo' => fake()->randomFloat(2, 0, 20),
+            'stock_actual' => fake()->numberBetween(0, 500),
+            'stock_minimo' => fake()->numberBetween(0, 20),
             'unidad_medida' => fake()->randomElement(['unidad', 'kg', 'litro', 'caja', 'pack']),
             'activo' => true,
         ];

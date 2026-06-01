@@ -19,6 +19,8 @@ interface ProductoOption {
   codigo: string;
   imagen: string | null;
   categoria?: { nombre: string } | null;
+  precio_venta: number;
+  margen_utilidad: number;
 }
 
 interface Props {
@@ -258,14 +260,18 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                   <thead className="border-b border-slate-200 dark:border-slate-700">
                     <tr>
                       <th className="px-3 py-2 text-left text-slate-500 dark:text-slate-400 font-medium">Producto</th>
-                      <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium">P. Unit.</th>
+                      <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium">P. Venta Actual</th>
+                      <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium">Margen %</th>
+                      <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium">P. Compra</th>
                       <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium">Cant.</th>
                       <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium">Subtotal</th>
                       <th className="px-3 py-2 text-right text-slate-500 dark:text-slate-400 font-medium"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                    {detalleConInfo.map((d: any, i: number) => (
+                    {detalleConInfo.map((d: any, i: number) => {
+                      const prod = productoMap.get(d.producto_id);
+                      return (
                       <tr key={i}>
                         <td className="px-3 py-2 text-slate-700 dark:text-slate-300">
                           <div className="flex items-center gap-2">
@@ -278,6 +284,12 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                             </div>
                             <span className="truncate">{d.codigo} — {d.nombre}</span>
                           </div>
+                        </td>
+                        <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300">
+                          Bs {prod?.precio_venta?.toFixed(2) ?? '0.00'}
+                        </td>
+                        <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300">
+                          {prod?.margen_utilidad?.toFixed(0) ?? '30'}%
                         </td>
                         <td className="px-3 py-2 text-right">
                           <input
@@ -312,11 +324,11 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                   <tfoot className="border-t-2 border-slate-200 dark:border-slate-700">
                     <tr>
-                      <td colSpan={3} className="px-3 py-2 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      <td colSpan={5} className="px-3 py-2 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Subtotal
                       </td>
                       <td className="px-3 py-2 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -325,7 +337,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                       <td></td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="px-3 py-1 text-right text-sm text-slate-500">
+                      <td colSpan={5} className="px-3 py-1 text-right text-sm text-slate-500">
                         IGV (18%)
                       </td>
                       <td className="px-3 py-1 text-right text-sm text-slate-500">
@@ -334,7 +346,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                       <td></td>
                     </tr>
                     <tr>
-                      <td colSpan={3} className="px-3 py-2 text-right text-base font-bold text-slate-900 dark:text-white">
+                      <td colSpan={5} className="px-3 py-2 text-right text-base font-bold text-slate-900 dark:text-white">
                         Total
                       </td>
                       <td className="px-3 py-2 text-right text-base font-bold text-indigo-600 dark:text-indigo-400">

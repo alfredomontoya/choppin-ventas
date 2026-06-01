@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Traits\HasCreadorActualizador;
+use App\Traits\HasFiltros;
 
 class MovimientoStock extends Model
 {
     protected $table = 'movimientos_stock';
 
     use HasCreadorActualizador;
+    use HasFiltros;
 
     protected $fillable = [
         'producto_id',
@@ -39,6 +41,11 @@ class MovimientoStock extends Model
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class);
+    }
+
+    public function getSearchColumns(): array
+    {
+        return ['motivo'];
     }
 
     public function user(): BelongsTo

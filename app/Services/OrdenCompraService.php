@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\TipoMovimientoStock;
 use App\Models\DetalleOrdenCompra;
 use App\Models\OrdenCompra;
+use App\Models\PrecioProducto;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 
@@ -49,14 +50,70 @@ class OrdenCompraService
             ->applyFilters($request);
     }
 
-    public function recibirOrden(OrdenCompra $ordenCompra): OrdenCompra
+    public function obtenerDiscrepanciasPrecios(OrdenCompra $ordenCompra): array
+    {
+        $discrepancias = [];
+
+        foreach ($ordenCompra->detalle as $detalle) {
+            $producto = $detalle->producto;
+
+            $precioActual = PrecioProducto::where('producto_id', $producto->id)
+                ->where(fn ($q) => $q->whereNull('fecha_fin')->orWhere('fecha_fin', '>=', now()->format('Y-m-d')))
+                ->latest('fecha_inicio')
+                ->first();
+
+            if (!$precioActual) {
+                continue;
+            }
+
+            $precioCompraActual = (float) $precioActual->precio_compra;
+            $precioUnitario = (float) $detalle->precio_unitario;
+            $margen = (float) ($producto->margen_utilidad ?? 30);
+
+            if (abs($precioCompraActual - $precioUnitario) > 0.01) {
+                $discrepancias[] = [
+                    'producto_id' => $producto->id,
+                    'producto_nombre' => "{$producto->codigo} — {$producto->nombre}",
+                    'precio_compra_actual' => $precioCompraActual,
+                    'precio_venta_actual' => (float) $precioActual->precio_venta,
+                    'precio_unitario_orden' => $precioUnitario,
+                    'margen_utilidad' => $margen,
+                    'nuevo_precio_venta_sugerido' => round($precioUnitario * (1 + $margen / 100), 2),
+                ];
+            }
+        }
+
+        return $discrepancias;
+    }
+
+    public function recibirOrden(OrdenCompra $ordenCompra, ?array $actualizarPrecios = null): OrdenCompra
     {
         if ($ordenCompra->estado !== 'pendiente') {
             throw new \RuntimeException('La orden de compra ya fue procesada');
         }
 
-        return \DB::transaction(function () use ($ordenCompra) {
+        return \DB::transaction(function () use ($ordenCompra, $actualizarPrecios) {
             $ordenCompra->update(['estado' => 'recibido']);
+
+            if ($actualizarPrecios) {
+                foreach ($actualizarPrecios as $item) {
+                    $precioActual = PrecioProducto::where('producto_id', $item['producto_id'])
+                        ->whereNull('fecha_fin')
+                        ->latest('fecha_inicio')
+                        ->first();
+
+                    if ($precioActual) {
+                        $precioActual->update(['fecha_fin' => now()->subDay()->format('Y-m-d')]);
+                    }
+
+                    PrecioProducto::create([
+                        'producto_id' => $item['producto_id'],
+                        'precio_compra' => $item['precio_compra'],
+                        'precio_venta' => $item['precio_venta'],
+                        'fecha_inicio' => now()->format('Y-m-d'),
+                    ]);
+                }
+            }
 
             $detalles = $ordenCompra->detalle()->with('producto')->get();
 

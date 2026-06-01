@@ -12,16 +12,9 @@ class CategoriaProductoFactory extends Factory
     protected $model = CategoriaProducto::class;
 
     protected static $nombres = [
-        'Camisetas Hombre',
-        'Pantalones Hombre',
-        'Camisas Hombre',
-        'Chaquetas Hombre',
-        'Ropa Interior Hombre',
-        'Vestidos Mujer',
-        'Blusas Mujer',
-        'Faldas Mujer',
-        'Pantalones Mujer',
-        'Ropa Interior Mujer',
+        'Ropa Hombre',
+        'Ropa Mujer',
+        'Accesorios',
     ];
 
     protected static $index = 0;

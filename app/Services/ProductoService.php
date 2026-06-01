@@ -21,6 +21,11 @@ class ProductoService
         return Producto::query()
             ->with('categoria')
             ->applyFilters($request)
+            ->when($request->filled('stock_bajo'), fn($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
+            ->when($request->filled('con_stock'), fn($q) => $q->where('stock_actual', '>', 0))
+            ->when($request->filled('sin_stock'), fn($q) => $q->where('stock_actual', '<=', 0))
+            ->when($request->filled('stock_desde'), fn($q) => $q->where('stock_actual', '>=', $request->stock_desde))
+            ->when($request->filled('stock_hasta'), fn($q) => $q->where('stock_actual', '<=', $request->stock_hasta))
             ->applySorting($request)
             ->paginate($request->input('por_pagina', 10))
             ->withQueryString();
@@ -138,7 +143,12 @@ class ProductoService
     {
         return Producto::query()
             ->with('categoria')
-            ->applyFilters($request);
+            ->applyFilters($request)
+            ->when($request->filled('stock_bajo'), fn($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
+            ->when($request->filled('con_stock'), fn($q) => $q->where('stock_actual', '>', 0))
+            ->when($request->filled('sin_stock'), fn($q) => $q->where('stock_actual', '<=', 0))
+            ->when($request->filled('stock_desde'), fn($q) => $q->where('stock_actual', '>=', $request->stock_desde))
+            ->when($request->filled('stock_hasta'), fn($q) => $q->where('stock_actual', '<=', $request->stock_hasta));
     }
 
     private function guardarImagenesMultiples(Producto $producto, array $files): void

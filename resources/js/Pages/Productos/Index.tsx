@@ -22,23 +22,56 @@ function ImageCell({ src, name }: { src: string | null; name: string }) {
   );
 }
 
+const stockCell = (p: any) => {
+  const bajo = Number(p.stock_actual) <= Number(p.stock_minimo);
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+      bajo
+        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+    }`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${bajo ? 'bg-red-500' : 'bg-emerald-500'}`} />
+      {p.stock_actual} / {p.stock_minimo}
+    </span>
+  );
+};
+
 const columnas = [
   { key: 'imagen', label: '', render: (p: any) => <ImageCell src={p.imagen ?? null} name={p.nombre} /> },
   { key: 'codigo', label: 'Código' },
   { key: 'nombre', label: 'Nombre' },
   { key: 'categoria', label: 'Categoría', render: (p: any) => p.categoria?.nombre ?? '—' },
-  { key: 'stock_actual', label: 'Stock' },
+  { key: 'stock_actual', label: 'Stock', render: stockCell },
   { key: 'unidad_medida', label: 'Unidad' },
   { key: 'activo', label: 'Estado', render: (p: any) => p.activo ? 'Activo' : 'Inactivo' },
 ];
 
+const STOCK_KEYS = ['stock_bajo', 'con_stock', 'sin_stock', 'stock_desde', 'stock_hasta'];
+
 export default function Index({ productos, filtros, productosFavoritos }: { productos: any; filtros: any; productosFavoritos?: number[] }) {
   const { flash } = usePage().props as any;
   const [search, setSearch] = useState<string>(filtros.busqueda ?? '');
+  const [filtroStock, setFiltroStock] = useState<string>(filtros.stock_bajo ? 'stock_bajo' : filtros.con_stock ? 'con_stock' : filtros.sin_stock ? 'sin_stock' : '');
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [favoritos, setFavoritos] = useState<Set<number>>(
     () => new Set(productosFavoritos ?? [])
   );
+
+  const filtrosBase = (): Record<string, any> => {
+    const rest: Record<string, any> = {};
+    for (const k of Object.keys(filtros)) {
+      if (!STOCK_KEYS.includes(k)) rest[k] = filtros[k];
+    }
+    return rest;
+  };
+
+  const filtrosConStock = (): Record<string, any> => {
+    const base = filtrosBase();
+    if (filtroStock === 'stock_bajo') base.stock_bajo = '1';
+    else if (filtroStock === 'con_stock') base.con_stock = '1';
+    else if (filtroStock === 'sin_stock') base.sin_stock = '1';
+    return base;
+  };
 
   useEffect(() => {
     if (flash?.success) toast.success(flash.success);
@@ -49,14 +82,14 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
     if (filtros.por_pagina === undefined) {
       const pp = window.innerWidth < 768 ? 5 : 10;
       if (pp !== 10) {
-        router.get(route('productos.index', { ...filtros, por_pagina: pp, busqueda: search || undefined }), {}, { replace: true });
+        router.get(route('productos.index', { ...filtrosBase(), por_pagina: pp, busqueda: search || undefined }), {}, { replace: true });
       }
     }
   }, []);
 
   const aplicarFiltros = () => {
     router.get(route('productos.index'), {
-      ...filtros,
+      ...filtrosConStock(),
       busqueda: search || undefined,
       page: 1,
     }, { preserveState: true, replace: true });
@@ -71,12 +104,13 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
 
   const limpiarFiltros = () => {
     setSearch('');
+    setFiltroStock('');
     router.get(route('productos.index'), {}, { preserveState: true, replace: true });
   };
 
   const ordenar = (columna: string) => {
     router.get(route('productos.index'), {
-      ...filtros,
+      ...filtrosConStock(),
       orden: columna,
       direccion: filtros.orden === columna && filtros.direccion === 'asc' ? 'desc' : 'asc',
       busqueda: search,
@@ -84,7 +118,7 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
   };
 
   const cambiarPagina = (params: Record<string, any>) => {
-    router.get(route('productos.index'), { ...filtros, ...params, busqueda: search }, { preserveState: true, replace: true });
+    router.get(route('productos.index'), { ...filtrosConStock(), ...params, busqueda: search }, { preserveState: true, replace: true });
   };
 
   const confirmarEliminar = (id: number) => setDeleteId(id);
@@ -155,7 +189,7 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
                 <button
                   onClick={() => {
                     setSearch('');
-                    router.get(route('productos.index'), { ...filtros, busqueda: undefined }, { preserveState: true });
+                    router.get(route('productos.index'), { ...filtrosBase(), busqueda: undefined }, { preserveState: true });
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
@@ -169,8 +203,26 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
             <button onClick={limpiarFiltros} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
               Limpiar
             </button>
+            <select
+              value={filtroStock}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFiltroStock(val);
+                const base = filtrosBase();
+                if (val === 'stock_bajo') base.stock_bajo = '1';
+                else if (val === 'con_stock') base.con_stock = '1';
+                else if (val === 'sin_stock') base.sin_stock = '1';
+                router.get(route('productos.index'), { ...base, page: 1 }, { preserveState: true, replace: true });
+              }}
+              className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Todos los stocks</option>
+              <option value="stock_bajo">Stock Bajo</option>
+              <option value="con_stock">Con Stock</option>
+              <option value="sin_stock">Sin Stock</option>
+            </select>
             <button
-              onClick={() => { window.location.href = route('productos.exportar', filtros); }}
+              onClick={() => { window.location.href = route('productos.exportar', filtrosConStock()); }}
               className="px-4 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
             >
               Exportar Excel
@@ -256,6 +308,16 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
             porPagina={filtros.por_pagina ?? 10}
             onChange={cambiarPagina}
           />
+          <div className="flex items-center gap-4 px-4 py-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700/50">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Stock normal (stock actual &gt; stock mínimo)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              Stock bajo (stock actual &le; stock mínimo)
+            </span>
+          </div>
         </Card>
       </div>
 

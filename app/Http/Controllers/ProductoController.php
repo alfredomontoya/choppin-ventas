@@ -30,7 +30,7 @@ class ProductoController extends Controller
 
         return inertia('Productos/Index', [
             'productos' => $productos,
-            'filtros' => $request->only(['busqueda', 'orden', 'direccion', 'por_pagina']),
+            'filtros' => $request->only(['busqueda', 'orden', 'direccion', 'por_pagina', 'stock_bajo', 'con_stock', 'sin_stock', 'stock_desde', 'stock_hasta']),
             'productosFavoritos' => $favoritosIds,
         ]);
     }

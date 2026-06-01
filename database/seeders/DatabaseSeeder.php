@@ -4,43 +4,45 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\CategoriaProducto;
-use App\Models\Cliente;
-use App\Models\PrecioProducto;
-use App\Models\Producto;
-use App\Models\Proveedor;
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        Schema::disableForeignKeyConstraints();
+
+        $tables = [
+            'producto_user_favoritos',
+            'movimientos_stock',
+            'detalle_ventas',
+            'ventas',
+            'detalle_orden_compra',
+            'ordenes_compra',
+            'precio_productos',
+            'producto_imagenes',
+            'productos',
+            'empleados',
+            'clientes',
+            'proveedores',
+            'categoria_productos',
+            'model_has_roles',
+            'model_has_permissions',
+            'role_has_permissions',
+            'roles',
+            'permissions',
+            'users',
+        ];
+
+        foreach ($tables as $table) {
+            DB::table($table)->truncate();
+        }
+
+        Schema::enableForeignKeyConstraints();
+
         $this->call(RolePermissionSeeder::class);
-
-        $admin = User::factory()->create([
-            'name' => 'Administrador',
-            'email' => 'admin@choppin.com',
-        ]);
-        $admin->assignRole('Administrador');
-
-        $vendedor = User::factory()->create([
-            'name' => 'Vendedor Demo',
-            'email' => 'vendedor@choppin.com',
-        ]);
-        $vendedor->assignRole('Vendedor');
-
-        $categorias = CategoriaProducto::factory(10)->create();
-
-        Cliente::factory(20)->create();
-
-        Proveedor::factory(10)->create();
-
-        $categorias->each(function ($cat) {
-            Producto::factory(5)
-                ->forCategory($cat)
-                ->withPrecio()
-                ->create();
-        });
+        $this->call(DemoDataSeeder::class);
     }
 }

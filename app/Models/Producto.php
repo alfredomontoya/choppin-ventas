@@ -29,6 +29,7 @@ class Producto extends Model
         'stock_actual',
         'stock_minimo',
         'unidad_medida',
+        'margen_utilidad',
         'activo',
     ];
 
@@ -39,6 +40,7 @@ class Producto extends Model
         return [
             'stock_actual' => 'decimal:2',
             'stock_minimo' => 'decimal:2',
+            'margen_utilidad' => 'decimal:2',
             'activo' => 'boolean',
         ];
     }

@@ -9,6 +9,7 @@ use App\Http\Requests\StoreVentaRequest;
 use App\Http\Requests\UpdateVentaRequest;
 use App\Models\Cliente;
 use App\Models\Producto;
+use App\Models\Venta;
 use App\Services\VentaService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -101,5 +102,13 @@ class VentaController extends Controller
             new VentaExport($request),
             'ventas.xlsx'
         );
+    }
+
+    public function imprimir(int $id, Request $request)
+    {
+        $venta = $this->service->obtenerPorId($id);
+        $tipo = $request->query('tipo', $venta->tipo_comprobante === 'factura' ? 'factura' : 'nota');
+
+        return view('ventas.print', compact('venta', 'tipo'));
     }
 }

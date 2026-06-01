@@ -1,25 +1,24 @@
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, useState } from 'react';
-
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: '◻' },
-  { name: 'Ventas', href: '/ventas', icon: '🛒' },
-  { name: 'Compras', href: '/compras', icon: '📦' },
-  { name: 'Clientes', href: '/clientes', icon: '👥' },
-  { name: 'Productos', href: '/productos', icon: '📦' },
-  { name: 'Categorías', href: '/categoria-productos', icon: '🏷️' },
-  { name: 'Proveedores', href: '/proveedores', icon: '🚚' },
-
-  { name: 'Almacén', href: '#', icon: '🏭' },
-  { name: 'Reportes', href: '#', icon: '📊' },
-  { name: 'Admin', href: '#', icon: '⚙' },
-];
+import { PropsWithChildren, useMemo, useState } from 'react';
 
 export default function DashboardLayout({ children }: PropsWithChildren) {
   const user = usePage().props.auth.user;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const navigation = useMemo(() => [
+    { name: 'Dashboard', href: route('dashboard'), icon: '◻' },
+    { name: 'Ventas', href: route('ventas.index'), icon: '🛒' },
+    { name: 'Compras', href: route('compras.index'), icon: '📦' },
+    { name: 'Clientes', href: route('clientes.index'), icon: '👥' },
+    { name: 'Productos', href: route('productos.index'), icon: '📦' },
+    { name: 'Categorías', href: route('categoria_productos.index'), icon: '🏷️' },
+    { name: 'Proveedores', href: route('proveedores.index'), icon: '🚚' },
+    { name: 'Almacén', href: route('almacen.index'), icon: '🏭' },
+    { name: 'Reportes', href: '#', icon: '📊' },
+    { name: 'Admin', href: '#', icon: '⚙' },
+  ], []);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -36,7 +35,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
               </svg>
             </button>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">Choppín</span>
+              <img src="/shopp.png" alt="Choppín" className="h-8 w-auto" />
             </Link>
           </div>
 
@@ -114,7 +113,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
         ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        <nav className="p-3 space-y-1">
+        <nav className="p-3 space-y-1 overflow-y-auto max-h-full">
           {navigation.map((item) => (
             <Link
               key={item.name}

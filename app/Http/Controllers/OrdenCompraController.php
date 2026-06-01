@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateOrdenCompraRequest;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Services\OrdenCompraService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -29,10 +30,20 @@ class OrdenCompraController extends Controller
 
     public function create(Request $request)
     {
+        $productos = Producto::with(['categoria', 'imagenes', 'precios'])
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get()
+            ->map(fn(Producto $p) => [
+                ...$p->toArray(),
+                'precio_venta' => $p->precio_venta,
+                'margen_utilidad' => (float) ($p->margen_utilidad ?? 30),
+            ]);
+
         return inertia('Compras/Create', [
             'return_url' => $request->query('return_url') ?: url()->previous(),
             'proveedores' => Proveedor::orderBy('nombre')->get(['id', 'nombre', 'contacto', 'nit_ci']),
-            'productos' => Producto::with(['categoria', 'imagenes'])->where('activo', true)->orderBy('nombre')->get(),
+            'productos' => $productos,
         ]);
     }
 
@@ -64,11 +75,21 @@ class OrdenCompraController extends Controller
     {
         $orden = $this->service->obtenerPorId($id);
 
+        $productos = Producto::with(['categoria', 'imagenes', 'precios'])
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get()
+            ->map(fn(Producto $p) => [
+                ...$p->toArray(),
+                'precio_venta' => $p->precio_venta,
+                'margen_utilidad' => (float) ($p->margen_utilidad ?? 30),
+            ]);
+
         return inertia('Compras/Edit', [
             'orden' => $orden,
             'return_url' => $request->query('return_url') ?: url()->previous(),
             'proveedores' => Proveedor::orderBy('nombre')->get(['id', 'nombre', 'contacto', 'nit_ci']),
-            'productos' => Producto::with(['categoria', 'imagenes'])->where('activo', true)->orderBy('nombre')->get(),
+            'productos' => $productos,
         ]);
     }
 
@@ -98,13 +119,27 @@ class OrdenCompraController extends Controller
         );
     }
 
-    public function recibir(int $id)
+    public function verificarPrecios(int $id): JsonResponse
     {
         $orden = $this->service->obtenerPorId($id);
-        $this->service->recibirOrden($orden);
+        $discrepancias = $this->service->obtenerDiscrepanciasPrecios($orden);
+
+        return response()->json(['discrepancias' => $discrepancias]);
+    }
+
+    public function recibir(int $id, Request $request)
+    {
+        $orden = $this->service->obtenerPorId($id);
+        $actualizarPrecios = $request->input('actualizar_precios');
+
+        $this->service->recibirOrden($orden, $actualizarPrecios);
+
+        $mensaje = $actualizarPrecios
+            ? 'Orden recibida. Stock y precios actualizados.'
+            : 'Orden de compra recibida correctamente. Stock actualizado.';
 
         return redirect()->route('compras.show', [
             'compra' => $id,
-        ])->with('success', 'Orden de compra recibida correctamente. Stock actualizado.');
+        ])->with('success', $mensaje);
     }
 }

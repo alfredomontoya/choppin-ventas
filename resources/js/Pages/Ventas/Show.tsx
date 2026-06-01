@@ -25,6 +25,11 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
     });
   };
 
+  const imprimir = (tipo: 'nota' | 'factura') => {
+    const url = route('ventas.imprimir', [venta.id, { tipo }]);
+    window.open(url, '_blank', 'width=400,height=700');
+  };
+
   const fields = [
     { label: 'N° Comprobante', value: venta.numero_comprobante },
     { label: 'Tipo', value: venta.tipo_comprobante === 'boleta' ? 'Boleta' : 'Factura' },
@@ -64,6 +69,18 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
             </Link>
             {venta.estado === 'completado' && (
               <>
+                <button
+                  onClick={() => imprimir('nota')}
+                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-sky-600 text-white text-xs md:text-sm hover:bg-sky-700 transition-colors"
+                >
+                  🖨️ Nota
+                </button>
+                <button
+                  onClick={() => imprimir('factura')}
+                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-sky-600 text-white text-xs md:text-sm hover:bg-sky-700 transition-colors"
+                >
+                  🖨️ Factura
+                </button>
                 <Link
                   href={route('ventas.edit', [venta.id, { return_url: url_anterior ?? undefined }])}
                   className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"

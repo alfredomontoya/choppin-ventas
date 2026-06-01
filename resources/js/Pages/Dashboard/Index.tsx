@@ -103,7 +103,7 @@ function DashboardIndex() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-lg">◻</div>
+                <img src="/shopp.png" alt="Choppín" className="w-10 h-10 rounded-lg object-cover" />
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Choppín</h3>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">

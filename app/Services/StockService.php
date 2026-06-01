@@ -14,10 +14,11 @@ class StockService
     public function registrarMovimiento(
         Producto $producto,
         TipoMovimientoStock $tipo,
-        float $cantidad,
+        float|string $cantidad,
         ?string $motivo = null,
         ?Model $referencia = null,
     ): MovimientoStock {
+        $cantidad = (float) $cantidad;
         $esIngreso = in_array($tipo, [
             TipoMovimientoStock::IngresoCompra,
             TipoMovimientoStock::IngresoManual,

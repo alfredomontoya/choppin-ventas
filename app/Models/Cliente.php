@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\HasCreadorActualizador;
+use App\Traits\HasEliminador;
+use App\Traits\HasFiltros;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\HasCreadorActualizador;
-use App\Traits\HasFiltros;
-use App\Traits\HasEliminador;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cliente extends Model
 {
-    use HasFactory, SoftDeletes, HasCreadorActualizador, HasEliminador, HasFiltros;
+    use HasCreadorActualizador, HasEliminador, HasFactory, HasFiltros, SoftDeletes;
 
     protected $fillable = [
         'nombre',

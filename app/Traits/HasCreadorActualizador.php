@@ -11,10 +11,10 @@ trait HasCreadorActualizador
     public static function bootHasCreadorActualizador(): void
     {
         static::creating(function ($model) {
-            if (auth()->check() && !$model->isDirty('created_by')) {
+            if (auth()->check() && ! $model->isDirty('created_by')) {
                 $model->created_by = auth()->id();
             }
-            if (auth()->check() && !$model->isDirty('updated_by')) {
+            if (auth()->check() && ! $model->isDirty('updated_by')) {
                 $model->updated_by = auth()->id();
             }
         });

@@ -38,7 +38,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
   const isEdit = !!venta;
 
   const { data, setData, post, put, processing, errors } = useForm({
-    cliente_id: venta?.cliente_id ?? '',
+    cliente_id: venta?.cliente_id ?? null,
     tipo_comprobante: venta?.tipo_comprobante ?? 'boleta',
     tipo_pago: venta?.tipo_pago ?? 'efectivo',
     descuento: venta?.descuento ?? 0,
@@ -119,12 +119,10 @@ export default function Form({ venta, return_url, clientes, productos, productos
       put(route('ventas.update', venta.id));
     } else {
       setData('monto_recibido', montoRecibido);
-      setData('cambio', cambio.toFixed(2));
-      setTimeout(() => {
-        post(route('ventas.store'), {
-          onSuccess: () => setShowConfirmModal(false),
-        });
-      }, 0);
+      setData('cambio', parseFloat(cambio.toFixed(2)));
+      post(route('ventas.store'), {
+        onSuccess: () => setShowConfirmModal(false),
+      });
     }
   };
 
@@ -197,7 +195,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                   </span>
                   <button
                     type="button"
-                    onClick={() => setData('cliente_id', '')}
+                    onClick={() => setData('cliente_id', null)}
                     className="text-indigo-400 hover:text-indigo-600 text-xs"
                   >
                     ✕

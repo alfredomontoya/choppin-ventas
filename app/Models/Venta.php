@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasCreadorActualizador;
 use App\Traits\HasEliminador;
 use App\Traits\HasFiltros;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Venta extends Model
 {
     protected $table = 'ventas';
 
-    use SoftDeletes, HasCreadorActualizador, HasEliminador, HasFiltros;
+    use HasCreadorActualizador, HasEliminador, HasFiltros, SoftDeletes;
 
     protected $fillable = [
         'user_id',

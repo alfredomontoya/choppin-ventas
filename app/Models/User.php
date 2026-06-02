@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\HasCreadorActualizador;
+use App\Traits\HasEliminador;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,13 +13,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use App\Traits\HasCreadorActualizador;
-use App\Traits\HasEliminador;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, HasRoles, HasCreadorActualizador, HasEliminador;
+    use HasCreadorActualizador, HasEliminador, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',

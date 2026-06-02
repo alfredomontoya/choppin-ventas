@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\HasCreadorActualizador;
 use App\Traits\HasEliminador;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Empleado extends Model
 {
     protected $table = 'empleados';
 
-    use HasFactory, SoftDeletes, HasCreadorActualizador, HasEliminador;
+    use HasCreadorActualizador, HasEliminador, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',

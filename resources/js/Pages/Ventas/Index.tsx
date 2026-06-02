@@ -30,22 +30,14 @@ export default function Index({ ventas, filtros }: { ventas: any; filtros: any }
   const { flash } = usePage().props as any;
   const [search, setSearch] = useState<string>(filtros.busqueda ?? '');
   const [anularId, setAnularId] = useState<number | null>(null);
+  const [exportando, setExportando] = useState(false);
 
-  const porPaginaDefault = window.innerWidth < 768 ? 5 : 10;
+  const porPaginaDefault = filtros.por_pagina ?? 10;
 
   useEffect(() => {
     if (flash?.success) toast.success(flash.success);
     if (flash?.error) toast.error(flash.error);
   }, [flash]);
-
-  useEffect(() => {
-    if (filtros.por_pagina === undefined) {
-      const pp = window.innerWidth < 768 ? 5 : 10;
-      if (pp !== 10) {
-        router.get(route('ventas.index', { ...filtros, por_pagina: pp, busqueda: search || undefined }), {}, { replace: true });
-      }
-    }
-  }, []);
 
   const aplicarFiltros = () => {
     router.get(route('ventas.index'), {
@@ -75,6 +67,11 @@ export default function Index({ ventas, filtros }: { ventas: any; filtros: any }
 
   const cambiarPagina = (params: Record<string, any>) => {
     router.get(route('ventas.index'), { ...filtros, ...params, busqueda: search }, { preserveState: true, replace: true });
+  };
+
+  const imprimir = (id: number, tipo: 'nota' | 'factura') => {
+    const url = route('ventas.imprimir', [id, { tipo }]);
+    window.open(url, '_blank', 'width=400,height=700');
   };
 
   const confirmarAnular = (id: number) => setAnularId(id);
@@ -141,10 +138,20 @@ export default function Index({ ventas, filtros }: { ventas: any; filtros: any }
               Limpiar
             </button>
             <button
-              onClick={() => { window.location.href = route('ventas.exportar', filtros); }}
-              className="px-4 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+              onClick={() => {
+                setExportando(true);
+                toast.loading('Exportando ventas...', { id: 'export' });
+                window.location.href = route('ventas.exportar', filtros);
+                setTimeout(() => {
+                  setExportando(false);
+                  toast.dismiss('export');
+                  toast.success('Exportación completada.');
+                }, 3000);
+              }}
+              disabled={exportando}
+              className="px-4 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-700/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Exportar Excel
+              {exportando ? 'Exportando...' : 'Exportar Excel'}
             </button>
           </div>
 
@@ -186,14 +193,22 @@ export default function Index({ ventas, filtros }: { ventas: any; filtros: any }
                         </td>
                       ))}
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1">
                           <Link href={route('ventas.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
                             👁
                           </Link>
                           {item.estado === 'completado' && (
-                            <button onClick={() => confirmarAnular(item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Anular">
-                              🚫
-                            </button>
+                            <>
+                              <button onClick={() => imprimir(item.id, 'nota')} className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Imprimir Nota">
+                                🧾
+                              </button>
+                              <button onClick={() => imprimir(item.id, 'factura')} className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Imprimir Factura">
+                                🖨️
+                              </button>
+                              <button onClick={() => confirmarAnular(item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Anular">
+                                🚫
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>

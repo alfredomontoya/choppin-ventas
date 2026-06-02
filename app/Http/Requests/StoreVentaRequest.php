@@ -30,6 +30,19 @@ class StoreVentaRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('cliente_id') && ($this->input('cliente_id') === '' || $this->input('cliente_id') === '0')) {
+            $this->merge(['cliente_id' => null]);
+        }
+        if ($this->has('monto_recibido') && $this->input('monto_recibido') === '') {
+            $this->merge(['monto_recibido' => null]);
+        }
+        if ($this->has('cambio') && $this->input('cambio') === '') {
+            $this->merge(['cambio' => null]);
+        }
+    }
+
     public function messages(): array
     {
         return [

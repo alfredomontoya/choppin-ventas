@@ -85,14 +85,15 @@ class ProductoController extends Controller
 
     private function rutasAUrl(Producto $producto): Producto
     {
-        if ($producto->imagen && !str_starts_with($producto->imagen, 'http')) {
+        if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
             $producto->imagen = Storage::url($producto->imagen);
         }
         foreach ($producto->imagenes ?? [] as $img) {
-            if ($img->ruta && !str_starts_with($img->ruta, 'http')) {
+            if ($img->ruta && ! str_starts_with($img->ruta, 'http')) {
                 $img->ruta = Storage::url($img->ruta);
             }
         }
+
         return $producto;
     }
 

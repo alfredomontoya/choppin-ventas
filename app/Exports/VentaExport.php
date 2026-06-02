@@ -18,7 +18,9 @@ class VentaExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        return Venta::with('cliente', 'user')->applyFilters($this->request);
+        return Venta::with('cliente', 'user')
+            ->applyFilters($this->request)
+            ->applySorting($this->request);
     }
 
     public function headings(): array

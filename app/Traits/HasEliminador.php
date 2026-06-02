@@ -11,7 +11,7 @@ trait HasEliminador
     public static function bootHasEliminador(): void
     {
         static::deleting(function ($model) {
-            if (auth()->check() && !$model->isForceDeleting()) {
+            if (auth()->check() && ! $model->isForceDeleting()) {
                 $model->deleted_by = auth()->id();
                 $model->saveQuietly();
             }

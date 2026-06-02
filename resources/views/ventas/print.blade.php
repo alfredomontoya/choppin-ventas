@@ -58,10 +58,10 @@
   </div>
 
   <div class="header">
-    <h1>Nombre de tu Tienda</h1>
-    <p class="info">Dirección de la tienda</p>
-    <p class="info">Teléfono: 777-123456</p>
-    <p class="info">NIT: 123456789</p>
+    <h1>{{ config('ventas.store.name') }}</h1>
+    <p class="info">{{ config('ventas.store.address') }}</p>
+    <p class="info">Teléfono: {{ config('ventas.store.phone') }}</p>
+    <p class="info">NIT: {{ config('ventas.store.nit') }}</p>
     <div class="tipo">{{ $tipo === 'factura' ? 'FACTURA' : 'NOTA DE VENTA' }}</div>
     <p class="info">N° <strong>{{ $venta->numero_comprobante }}</strong></p>
     <p class="info">{{ $venta->fecha_emision->format('d/m/Y H:i') }}</p>

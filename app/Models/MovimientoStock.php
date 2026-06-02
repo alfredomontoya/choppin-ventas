@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\HasCreadorActualizador;
+use App\Traits\HasFiltros;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use App\Traits\HasCreadorActualizador;
-use App\Traits\HasFiltros;
 
 class MovimientoStock extends Model
 {

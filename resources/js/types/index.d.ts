@@ -5,10 +5,18 @@ export interface User {
     email_verified_at?: string;
 }
 
+export interface RoleWithPermissions {
+    name: string;
+    permissions: string[];
+}
+
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
     auth: {
         user: User;
+        roles: string[];
+        roles_data: RoleWithPermissions[];
+        permissions: string[];
     };
 };

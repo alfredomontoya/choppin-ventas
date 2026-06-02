@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\HasCreadorActualizador;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\HasCreadorActualizador;
 
 class PrecioProducto extends Model
 {
     protected $table = 'precio_productos';
 
-    use HasFactory, HasCreadorActualizador;
+    use HasCreadorActualizador, HasFactory;
 
     protected $fillable = [
         'producto_id',

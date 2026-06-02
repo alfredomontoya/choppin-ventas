@@ -9,7 +9,7 @@ use App\Http\Requests\StoreVentaRequest;
 use App\Http\Requests\UpdateVentaRequest;
 use App\Models\Cliente;
 use App\Models\Producto;
-use App\Models\Venta;
+use App\Models\User;
 use App\Services\VentaService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -30,13 +30,17 @@ class VentaController extends Controller
 
     public function create(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         return inertia('Ventas/Create', [
             'return_url' => $request->query('return_url') ?: url()->previous(),
             'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'tipo_documento', 'numero_documento']),
-            'productos' => Producto::with(['categoria', 'precios', 'imagenes'])->where('activo', true)->orderBy('nombre')->get(),
+            'productos' => Producto::with(['categoria', 'precios'])
+                ->where('activo', true)
+                ->orderBy('nombre')
+                ->limit(200)
+                ->get(),
             'productosFavoritos' => $user->productosFavoritos,
         ]);
     }

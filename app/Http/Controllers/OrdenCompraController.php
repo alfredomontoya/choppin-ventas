@@ -34,7 +34,7 @@ class OrdenCompraController extends Controller
             ->where('activo', true)
             ->orderBy('nombre')
             ->get()
-            ->map(fn(Producto $p) => [
+            ->map(fn (Producto $p) => [
                 ...$p->toArray(),
                 'precio_venta' => $p->precio_venta,
                 'margen_utilidad' => (float) ($p->margen_utilidad ?? 30),
@@ -79,7 +79,7 @@ class OrdenCompraController extends Controller
             ->where('activo', true)
             ->orderBy('nombre')
             ->get()
-            ->map(fn(Producto $p) => [
+            ->map(fn (Producto $p) => [
                 ...$p->toArray(),
                 'precio_venta' => $p->precio_venta,
                 'margen_utilidad' => (float) ($p->margen_utilidad ?? 30),

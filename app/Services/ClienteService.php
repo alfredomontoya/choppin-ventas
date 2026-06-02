@@ -32,6 +32,7 @@ class ClienteService
     {
         $cliente = $this->obtenerPorId($id);
         $cliente->update($data);
+
         return $cliente;
     }
 

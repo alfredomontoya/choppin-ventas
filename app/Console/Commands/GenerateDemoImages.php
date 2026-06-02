@@ -18,6 +18,7 @@ class GenerateDemoImages extends Command
     protected $description = 'Genera imágenes placeholder para categorías y productos';
 
     private const W = 640;
+
     private const H = 480;
 
     private const COLORS = [
@@ -119,8 +120,8 @@ class GenerateDemoImages extends Command
 
         $cardW = 280;
         $cardH = 280;
-        $cx = (int)((self::W - $cardW) / 2);
-        $cy = (int)((self::H - $cardH) / 2 - 20);
+        $cx = (int) ((self::W - $cardW) / 2);
+        $cy = (int) ((self::H - $cardH) / 2 - 20);
         imagefilledroundedrect($img, $cx, $cy, $cx + $cardW, $cy + $cardH, 20, $card);
 
         $white = imagecolorallocate($img, 255, 255, 255);
@@ -130,14 +131,14 @@ class GenerateDemoImages extends Command
         if ($font) {
             $box = imagettfbbox(26, 0, $font, $line1);
             if ($box) {
-                $x = (int)((self::W - ($box[2] - $box[0])) / 2);
+                $x = (int) ((self::W - ($box[2] - $box[0])) / 2);
                 $y = $cy + $cardH + 50;
                 imagettftext($img, 26, 0, $x, $y, $white, $font, $line1);
             }
             if ($line2) {
                 $box = imagettfbbox(16, 0, $font, $line2);
                 if ($box) {
-                    $x = (int)((self::W - ($box[2] - $box[0])) / 2);
+                    $x = (int) ((self::W - ($box[2] - $box[0])) / 2);
                     $y = $cy + $cardH + 80;
                     imagettftext($img, 16, 0, $x, $y, $white, $font, $line2);
                 }
@@ -158,21 +159,21 @@ class GenerateDemoImages extends Command
 
         $s = 60;
 
-        $x1 = (int)($cx - $s * 0.8);
-        $x2 = (int)($cx + $s * 0.8);
-        $yTop = (int)($cy - $s * 1.1);
-        $yBot = (int)($cy + $s * 1.0);
+        $x1 = (int) ($cx - $s * 0.8);
+        $x2 = (int) ($cx + $s * 0.8);
+        $yTop = (int) ($cy - $s * 1.1);
+        $yBot = (int) ($cy + $s * 1.0);
 
-        $neckY = (int)($yTop + $s * 0.3);
-        $shoulderW = (int)($s * 0.3);
+        $neckY = (int) ($yTop + $s * 0.3);
+        $shoulderW = (int) ($s * 0.3);
 
         $lsx = $x1 + $shoulderW;
         $lsx2 = $x1 + $shoulderW + 10;
         $rsx = $x2 - $shoulderW;
         $rsx2 = $x2 - $shoulderW - 10;
-        $mshY = (int)($neckY + $s * 0.5);
-        $mshY2 = (int)($neckY + $s * 0.6);
-        $vBottom = (int)($neckY + $s * 0.3);
+        $mshY = (int) ($neckY + $s * 0.5);
+        $mshY2 = (int) ($neckY + $s * 0.6);
+        $vBottom = (int) ($neckY + $s * 0.3);
 
         imageline($img, $x1, $neckY, $lsx, $mshY, $color);
         imageline($img, $lsx, $mshY, $lsx, $yBot, $color);
@@ -181,7 +182,7 @@ class GenerateDemoImages extends Command
         imageline($img, $lsx2, $mshY2, $lsx2, $yBot, $color);
         imageline($img, $rsx2, $mshY2, $rsx2, $yBot, $color);
         imageline($img, $x1, $neckY, $x2, $neckY, $color);
-        imageline($img, (int)$cx, $neckY - 8, (int)$cx, $vBottom, $color);
+        imageline($img, (int) $cx, $neckY - 8, (int) $cx, $vBottom, $color);
         imageline($img, $lsx2, $yBot, $rsx2, $yBot, $color);
     }
 
@@ -205,7 +206,7 @@ class GenerateDemoImages extends Command
     }
 }
 
-if (!function_exists('imagefilledroundedrect')) {
+if (! function_exists('imagefilledroundedrect')) {
     function imagefilledroundedrect(\GdImage $img, int $x1, int $y1, int $x2, int $y2, int $radius, int $color): void
     {
         imagefilledrectangle($img, $x1 + $radius, $y1, $x2 - $radius, $y2, $color);

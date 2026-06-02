@@ -7,12 +7,15 @@ namespace Database\Seeders;
 use App\Enums\TipoMovimientoStock;
 use App\Models\CategoriaProducto;
 use App\Models\Cliente;
+use App\Models\Correlativo;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\User;
+use App\Models\Venta;
 use App\Services\OrdenCompraService;
 use App\Services\StockService;
 use App\Services\VentaService;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class DemoDataSeeder extends Seeder
@@ -62,9 +65,26 @@ class DemoDataSeeder extends Seeder
             'stock_minimo' => 10,
         ]);
 
+        $ultimaBoleta = Venta::where('tipo_comprobante', 'boleta')->withTrashed()->count();
+        $ultimaFactura = Venta::where('tipo_comprobante', 'factura')->withTrashed()->count();
+        Correlativo::where('tipo', 'boleta')->update(['ultimo' => $ultimaBoleta]);
+        Correlativo::where('tipo', 'factura')->update(['ultimo' => $ultimaFactura]);
+
+        Producto::where('stock_actual', '<', 0)->update(['stock_actual' => 0]);
+
         if ($this->command) {
             $this->command->call('images:generate-demo');
         }
+    }
+
+    private function fechaUniforme(int $index, int $total): Carbon
+    {
+        $inicio = Carbon::create(2026, 5, 1, 8, 0, 0);
+        $fin = now()->copy();
+        $segundos = $inicio->diffInSeconds($fin);
+        $avance = (int) (($index + 0.5) / $total * $segundos);
+
+        return (clone $inicio)->addSeconds($avance);
     }
 
     private function crearComprasDemo(): void
@@ -73,7 +93,7 @@ class DemoDataSeeder extends Seeder
         $proveedores = Proveedor::all();
         $productos = Producto::all();
 
-        for ($i = 0; $i < 15; $i++) {
+        for ($i = 0; $i < 30; $i++) {
             $proveedor = $proveedores->random();
             $tipo = fake()->randomElement(['boleta', 'factura']);
             $numDetalles = rand(1, 4);
@@ -99,13 +119,13 @@ class DemoDataSeeder extends Seeder
                 observaciones: $observaciones,
             );
 
-            if ($i < 10) {
-                $fecha = now()->subDays(rand(1, 20))->subHours(rand(0, 12));
-                $orden->updateQuietly(['fecha_emision' => $fecha, 'created_at' => $fecha, 'updated_at' => $fecha]);
+            $fecha = $this->fechaUniforme($i, 30);
+            $orden->updateQuietly(['fecha_emision' => $fecha, 'created_at' => $fecha, 'updated_at' => $fecha]);
+
+            if ($i < 20) {
+                $recibida = (clone $fecha)->addMinutes(rand(10, 1440));
                 $service->recibirOrden($orden);
-            } else {
-                $fecha = now()->subDays(rand(0, 5));
-                $orden->updateQuietly(['fecha_emision' => $fecha, 'created_at' => $fecha, 'updated_at' => $fecha]);
+                $orden->updateQuietly(['updated_at' => $recibida]);
             }
         }
     }
@@ -117,7 +137,7 @@ class DemoDataSeeder extends Seeder
         $productos = Producto::all();
         $tiposPago = ['efectivo', 'tarjeta', 'transferencia'];
 
-        for ($i = 0; $i < 25; $i++) {
+        for ($i = 0; $i < 65; $i++) {
             $cliente = $clientes->random();
             $tipoComprobante = fake()->randomElement(['boleta', 'factura']);
             $tipoPago = $tiposPago[array_rand($tiposPago)];
@@ -152,10 +172,10 @@ class DemoDataSeeder extends Seeder
                 observaciones: $observaciones,
             );
 
-            $fecha = now()->subDays(rand(0, 30))->subHours(rand(0, 12));
+            $fecha = $this->fechaUniforme($i, 65);
             $venta->updateQuietly(['fecha_emision' => $fecha, 'created_at' => $fecha, 'updated_at' => $fecha]);
 
-            if ($i >= 22) {
+            if ($i < 5) {
                 $service->anular($venta->id);
             }
         }

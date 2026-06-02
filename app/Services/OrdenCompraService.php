@@ -35,6 +35,7 @@ class OrdenCompraService
     {
         $orden = $this->obtenerPorId($id);
         $orden->update($data);
+
         return $orden;
     }
 
@@ -62,7 +63,7 @@ class OrdenCompraService
                 ->latest('fecha_inicio')
                 ->first();
 
-            if (!$precioActual) {
+            if (! $precioActual) {
                 continue;
             }
 
@@ -142,7 +143,7 @@ class OrdenCompraService
 
         $detallesData = [];
         foreach ($detalles as $item) {
-            $producto = \App\Models\Producto::findOrFail($item['producto_id']);
+            $producto = Producto::findOrFail($item['producto_id']);
             $cantidad = $item['cantidad'];
             $precio = $item['precio_unitario'];
             $itemSubtotal = $precio * $cantidad;
@@ -185,6 +186,7 @@ class OrdenCompraService
     private function generarComprobante(): string
     {
         $ultimo = OrdenCompra::withTrashed()->count();
-        return 'OC-' . str_pad((string)($ultimo + 1), 8, '0', STR_PAD_LEFT);
+
+        return 'OC-' . str_pad((string) ($ultimo + 1), 8, '0', STR_PAD_LEFT);
     }
 }

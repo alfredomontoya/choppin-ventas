@@ -29,7 +29,7 @@ class ProductoFactory extends Factory
 
     public function forCategory(CategoriaProducto $category): static
     {
-        return $this->state(fn(array $attrs) => [
+        return $this->state(fn (array $attrs) => [
             'categoria_id' => $category->id,
         ]);
     }

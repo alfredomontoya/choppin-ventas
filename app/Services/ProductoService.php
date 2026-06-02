@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\PrecioProducto;
 use App\Models\Producto;
 use App\Models\ProductoImagen;
 use Illuminate\Http\Request;
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class ProductoService
 {
     private const MAX_BYTES = 512000;
+
     private const DIRECTORIO = 'productos';
 
     public function listar(Request $request)
@@ -21,11 +21,11 @@ class ProductoService
         return Producto::query()
             ->with('categoria')
             ->applyFilters($request)
-            ->when($request->filled('stock_bajo'), fn($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
-            ->when($request->filled('con_stock'), fn($q) => $q->where('stock_actual', '>', 0))
-            ->when($request->filled('sin_stock'), fn($q) => $q->where('stock_actual', '<=', 0))
-            ->when($request->filled('stock_desde'), fn($q) => $q->where('stock_actual', '>=', $request->stock_desde))
-            ->when($request->filled('stock_hasta'), fn($q) => $q->where('stock_actual', '<=', $request->stock_hasta))
+            ->when($request->filled('stock_bajo'), fn ($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
+            ->when($request->filled('con_stock'), fn ($q) => $q->where('stock_actual', '>', 0))
+            ->when($request->filled('sin_stock'), fn ($q) => $q->where('stock_actual', '<=', 0))
+            ->when($request->filled('stock_desde'), fn ($q) => $q->where('stock_actual', '>=', $request->stock_desde))
+            ->when($request->filled('stock_hasta'), fn ($q) => $q->where('stock_actual', '<=', $request->stock_hasta))
             ->applySorting($request)
             ->paginate($request->input('por_pagina', 10))
             ->withQueryString();
@@ -74,12 +74,12 @@ class ProductoService
         unset($data['imagenes_nuevas'], $data['imagenes_eliminar'], $data['imagenes_orden'], $data['precio_compra'], $data['precio_venta']);
 
         if (isset($data['imagen']) && $data['imagen'] instanceof UploadedFile) {
-            if ($producto->imagen && !str_starts_with($producto->imagen, 'http')) {
+            if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
                 Storage::disk('public')->delete($producto->imagen);
             }
             $data['imagen'] = $this->comprimirYGuardar($data['imagen']);
         } elseif (isset($data['imagen']) && $data['imagen'] === '') {
-            if ($producto->imagen && !str_starts_with($producto->imagen, 'http')) {
+            if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
                 Storage::disk('public')->delete($producto->imagen);
             }
             $data['imagen'] = null;
@@ -126,12 +126,12 @@ class ProductoService
     {
         $producto = $this->obtenerPorId($id);
 
-        if ($producto->imagen && !str_starts_with($producto->imagen, 'http')) {
+        if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
             Storage::disk('public')->delete($producto->imagen);
         }
 
         foreach ($producto->imagenes as $img) {
-            if (!str_starts_with($img->ruta, 'http')) {
+            if (! str_starts_with($img->ruta, 'http')) {
                 Storage::disk('public')->delete($img->ruta);
             }
         }
@@ -144,11 +144,11 @@ class ProductoService
         return Producto::query()
             ->with('categoria')
             ->applyFilters($request)
-            ->when($request->filled('stock_bajo'), fn($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
-            ->when($request->filled('con_stock'), fn($q) => $q->where('stock_actual', '>', 0))
-            ->when($request->filled('sin_stock'), fn($q) => $q->where('stock_actual', '<=', 0))
-            ->when($request->filled('stock_desde'), fn($q) => $q->where('stock_actual', '>=', $request->stock_desde))
-            ->when($request->filled('stock_hasta'), fn($q) => $q->where('stock_actual', '<=', $request->stock_hasta));
+            ->when($request->filled('stock_bajo'), fn ($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
+            ->when($request->filled('con_stock'), fn ($q) => $q->where('stock_actual', '>', 0))
+            ->when($request->filled('sin_stock'), fn ($q) => $q->where('stock_actual', '<=', 0))
+            ->when($request->filled('stock_desde'), fn ($q) => $q->where('stock_actual', '>=', $request->stock_desde))
+            ->when($request->filled('stock_hasta'), fn ($q) => $q->where('stock_actual', '<=', $request->stock_hasta));
     }
 
     private function guardarImagenesMultiples(Producto $producto, array $files): void
@@ -156,7 +156,9 @@ class ProductoService
         $ultimoOrden = ProductoImagen::where('producto_id', $producto->id)->max('orden') ?? 0;
 
         foreach ($files as $file) {
-            if (!$file instanceof UploadedFile) continue;
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
             $ultimoOrden++;
             $ruta = $this->comprimirYGuardar($file);
             $producto->imagenes()->create([
@@ -170,8 +172,10 @@ class ProductoService
     {
         foreach ($ids as $id) {
             $img = ProductoImagen::find($id);
-            if (!$img || $img->producto_id !== $producto->id) continue;
-            if (!str_starts_with($img->ruta, 'http')) {
+            if (! $img || $img->producto_id !== $producto->id) {
+                continue;
+            }
+            if (! str_starts_with($img->ruta, 'http')) {
                 Storage::disk('public')->delete($img->ruta);
             }
             $img->delete();
@@ -200,7 +204,7 @@ class ProductoService
             default => null,
         };
 
-        if (!$gdImage) {
+        if (! $gdImage) {
             return $file->store(self::DIRECTORIO, 'public');
         }
 
@@ -256,8 +260,8 @@ class ProductoService
             $ancho = imagesx($gdImage);
             $alto = imagesy($gdImage);
             $factor = sqrt(self::MAX_BYTES / $tamano);
-            $nuevoAncho = max(64, (int)($ancho * $factor));
-            $nuevoAlto = max(64, (int)($alto * $factor));
+            $nuevoAncho = max(64, (int) ($ancho * $factor));
+            $nuevoAlto = max(64, (int) ($alto * $factor));
             $redimensionada = imagescale($gdImage, $nuevoAncho, $nuevoAlto);
             if ($redimensionada) {
                 $calidad = 85;
@@ -283,6 +287,7 @@ class ProductoService
             'image/png' => imagepng($gdImage, null, 9),
             'image/webp' => imagewebp($gdImage, null, $quality),
         };
+
         return ob_get_clean();
     }
 
@@ -295,6 +300,7 @@ class ProductoService
         if (str_starts_with($ruta, '/storage/')) {
             return substr($ruta, strlen('/storage/'));
         }
+
         return $ruta;
     }
 
@@ -306,6 +312,7 @@ class ProductoService
         $blanco = imagecolorallocate($jpeg, 255, 255, 255);
         imagefill($jpeg, 0, 0, $blanco);
         imagecopy($jpeg, $gdImage, 0, 0, 0, 0, $ancho, $alto);
+
         return $jpeg;
     }
 }

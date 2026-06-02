@@ -15,10 +15,10 @@ class AlmacenService
     {
         return MovimientoStock::query()
             ->with('producto', 'user')
-            ->when($request->filled('busqueda'), fn($q) => $q->whereHas('producto', fn($q) => $q->where('nombre', 'like', "%{$request->busqueda}%")->orWhere('codigo', 'like', "%{$request->busqueda}%")))
-            ->when($request->filled('tipo'), fn($q) => $q->where('tipo', $request->tipo))
-            ->when($request->filled('fecha_desde'), fn($q) => $q->whereDate('created_at', '>=', $request->fecha_desde))
-            ->when($request->filled('fecha_hasta'), fn($q) => $q->whereDate('created_at', '<=', $request->fecha_hasta))
+            ->when($request->filled('busqueda'), fn ($q) => $q->whereHas('producto', fn ($q) => $q->where('nombre', 'like', "%{$request->busqueda}%")->orWhere('codigo', 'like', "%{$request->busqueda}%")))
+            ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
+            ->when($request->filled('fecha_desde'), fn ($q) => $q->whereDate('created_at', '>=', $request->fecha_desde))
+            ->when($request->filled('fecha_hasta'), fn ($q) => $q->whereDate('created_at', '<=', $request->fecha_hasta))
             ->applySorting($request)
             ->paginate($request->input('por_pagina', 10))
             ->withQueryString();
@@ -46,9 +46,9 @@ class AlmacenService
     {
         return MovimientoStock::query()
             ->with('producto')
-            ->when($request->filled('busqueda'), fn($q) => $q->whereHas('producto', fn($q) => $q->where('nombre', 'like', "%{$request->busqueda}%")->orWhere('codigo', 'like', "%{$request->busqueda}%")))
-            ->when($request->filled('tipo'), fn($q) => $q->where('tipo', $request->tipo))
-            ->when($request->filled('fecha_desde'), fn($q) => $q->whereDate('created_at', '>=', $request->fecha_desde))
-            ->when($request->filled('fecha_hasta'), fn($q) => $q->whereDate('created_at', '<=', $request->fecha_hasta));
+            ->when($request->filled('busqueda'), fn ($q) => $q->whereHas('producto', fn ($q) => $q->where('nombre', 'like', "%{$request->busqueda}%")->orWhere('codigo', 'like', "%{$request->busqueda}%")))
+            ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
+            ->when($request->filled('fecha_desde'), fn ($q) => $q->whereDate('created_at', '>=', $request->fecha_desde))
+            ->when($request->filled('fecha_hasta'), fn ($q) => $q->whereDate('created_at', '<=', $request->fecha_hasta));
     }
 }

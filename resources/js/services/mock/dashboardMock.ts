@@ -10,7 +10,9 @@ const diasSemana = Array.from({ length: 7 }, (_, i) => {
 export function getDashboardResumen(): DashboardResumen {
   return {
     ventas_hoy: 24,
+    ventas_trend: 12,
     ingresos_hoy: 4520.50,
+    ingresos_trend: 8,
     productos_agotados: 3,
     ordenes_pendientes: 5,
     ingresos_semana: [

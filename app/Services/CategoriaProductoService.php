@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class CategoriaProductoService
 {
     private const MAX_BYTES = 512000;
+
     private const DIRECTORIO = 'categorias';
 
     public function listar(Request $request)
@@ -42,12 +43,12 @@ class CategoriaProductoService
         $categoria = $this->obtenerPorId($id);
 
         if (isset($data['imagen']) && $data['imagen'] instanceof UploadedFile) {
-            if ($categoria->imagen && !str_starts_with($categoria->imagen, 'http')) {
+            if ($categoria->imagen && ! str_starts_with($categoria->imagen, 'http')) {
                 Storage::disk('public')->delete($categoria->imagen);
             }
             $data['imagen'] = $this->comprimirYGuardar($data['imagen']);
         } elseif (isset($data['imagen']) && $data['imagen'] === '') {
-            if ($categoria->imagen && !str_starts_with($categoria->imagen, 'http')) {
+            if ($categoria->imagen && ! str_starts_with($categoria->imagen, 'http')) {
                 Storage::disk('public')->delete($categoria->imagen);
             }
             $data['imagen'] = null;
@@ -56,13 +57,14 @@ class CategoriaProductoService
         }
 
         $categoria->update($data);
+
         return $categoria;
     }
 
     public function eliminar(int $id): void
     {
         $categoria = $this->obtenerPorId($id);
-        if ($categoria->imagen && !str_starts_with($categoria->imagen, 'http')) {
+        if ($categoria->imagen && ! str_starts_with($categoria->imagen, 'http')) {
             Storage::disk('public')->delete($categoria->imagen);
         }
         $categoria->delete();
@@ -87,7 +89,7 @@ class CategoriaProductoService
             default => null,
         };
 
-        if (!$gdImage) {
+        if (! $gdImage) {
             return $file->store(self::DIRECTORIO, 'public');
         }
 
@@ -171,6 +173,7 @@ class CategoriaProductoService
             'image/png' => imagepng($gdImage, null, 9),
             'image/webp' => imagewebp($gdImage, null, $quality),
         };
+
         return ob_get_clean();
     }
 
@@ -183,6 +186,7 @@ class CategoriaProductoService
         if (str_starts_with($ruta, '/storage/')) {
             return substr($ruta, strlen('/storage/'));
         }
+
         return $ruta;
     }
 
@@ -194,6 +198,7 @@ class CategoriaProductoService
         $blanco = imagecolorallocate($jpeg, 255, 255, 255);
         imagefill($jpeg, 0, 0, $blanco);
         imagecopy($jpeg, $gdImage, 0, 0, 0, 0, $ancho, $alto);
+
         return $jpeg;
     }
 }

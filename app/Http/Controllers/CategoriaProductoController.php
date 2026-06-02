@@ -91,9 +91,10 @@ class CategoriaProductoController extends Controller
 
     private function imagenAUrl(CategoriaProducto $categoria): CategoriaProducto
     {
-        if ($categoria->imagen && !str_starts_with($categoria->imagen, 'http')) {
+        if ($categoria->imagen && ! str_starts_with($categoria->imagen, 'http')) {
             $categoria->imagen = Storage::url($categoria->imagen);
         }
+
         return $categoria;
     }
 }

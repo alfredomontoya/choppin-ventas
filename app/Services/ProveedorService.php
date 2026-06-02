@@ -32,6 +32,7 @@ class ProveedorService
     {
         $proveedor = $this->obtenerPorId($id);
         $proveedor->update($data);
+
         return $proveedor;
     }
 

@@ -130,7 +130,9 @@ export interface MovimientoStock {
 
 export interface DashboardResumen {
   ventas_hoy: number;
+  ventas_trend: number;
   ingresos_hoy: number;
+  ingresos_trend: number;
   productos_agotados: number;
   ordenes_pendientes: number;
   ingresos_semana: { fecha: string; total: number }[];
@@ -142,6 +144,112 @@ export interface RolYPermisos {
   id: number;
   name: string;
   permissions: string[];
+}
+
+export interface ReporteVenta {
+  id: number;
+  user_id: number;
+  user?: User;
+  cliente_id?: number | null;
+  cliente?: Cliente | null;
+  numero_comprobante: string;
+  tipo_comprobante: string;
+  fecha_emision: string;
+  moneda: string;
+  subtotal: number;
+  igv: number;
+  descuento: number;
+  total: number;
+  tipo_pago: string;
+  estado: string;
+}
+
+export interface ReporteVentasResumen {
+  total_ventas: number;
+  subtotal: number;
+  igv: number;
+  descuento: number;
+  total_ingresos: number;
+}
+
+export interface ReporteCompra {
+  id: number;
+  proveedor_id: number;
+  proveedor?: Proveedor;
+  user_id: number;
+  user?: User;
+  numero_comprobante: string;
+  tipo_comprobante: string;
+  fecha_emision: string;
+  moneda: string;
+  subtotal: number;
+  igv: number;
+  total: number;
+  estado: string;
+}
+
+export interface ReporteComprasResumen {
+  total_compras: number;
+  subtotal: number;
+  igv: number;
+  total_gastos: number;
+}
+
+export interface ReporteRentabilidad {
+  producto_id: number;
+  nombre: string;
+  codigo: string;
+  categoria: string | null;
+  cantidad_vendida: number;
+  precio_promedio: number;
+  ingreso_total: number;
+  costo_total: number;
+  ganancia_total: number;
+  margen: number;
+}
+
+export interface ReporteRentabilidadResumen {
+  total_productos_vendidos: number;
+  ingreso_total: number;
+  productos_distintos: number;
+}
+
+export interface ReporteMovimiento {
+  id: number;
+  producto_id: number;
+  producto?: Producto;
+  user_id: number;
+  tipo: string;
+  cantidad: number;
+  stock_anterior: number;
+  stock_posterior: number;
+  motivo: string | null;
+  created_at: string;
+}
+
+export interface ReporteMovimientosResumen {
+  total_movimientos: number;
+  ingresos: number;
+  egresos: number;
+}
+
+export interface ReporteCliente {
+  id: number;
+  nombre_completo: string;
+  tipo_documento: string;
+  numero_documento: string;
+  telefono: string | null;
+  email: string | null;
+  total_compras: number;
+  monto_total: number;
+  promedio_compra: number;
+  ultima_compra: string | null;
+}
+
+export interface ReporteClientesResumen {
+  total_clientes: number;
+  total_ingresos: number;
+  promedio_general: number;
 }
 
 export interface ModuloPermisos {

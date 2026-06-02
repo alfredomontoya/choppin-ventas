@@ -17,7 +17,7 @@ class PrecioProductoFactory extends Factory
         return [
             'producto_id' => Producto::factory(),
             'precio_compra' => fake()->randomFloat(2, 1, 100),
-            'precio_venta' => fn(array $attrs) => $attrs['precio_compra'] * 1.3,
+            'precio_venta' => fn (array $attrs) => $attrs['precio_compra'] * 1.3,
             'fecha_inicio' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
             'fecha_fin' => null,
         ];

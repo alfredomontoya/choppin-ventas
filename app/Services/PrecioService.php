@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Models\PrecioProducto;
 use App\Models\Producto;
-use Illuminate\Support\Collection;
 
 class PrecioService
 {
@@ -18,7 +17,7 @@ class PrecioService
             ->where('fecha_inicio', '<=', $fecha)
             ->where(function ($q) use ($fecha) {
                 $q->where('fecha_fin', '>=', $fecha)
-                  ->orWhereNull('fecha_fin');
+                    ->orWhereNull('fecha_fin');
             })
             ->latest('fecha_inicio')
             ->first();

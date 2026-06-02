@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\TipoMovimientoStock;
+use App\Models\Correlativo;
 use App\Models\DetalleVenta;
 use App\Models\Producto;
 use App\Models\Venta;
@@ -18,10 +19,16 @@ class VentaService
 
     public function listar(Request $request)
     {
+        $porPagina = $request->input('por_pagina');
+
+        if (! $porPagina) {
+            $porPagina = 10;
+        }
+
         return Venta::with('cliente', 'user')
             ->applyFilters($request)
             ->applySorting($request)
-            ->paginate($request->input('por_pagina', 10))
+            ->paginate((int) $porPagina)
             ->withQueryString();
     }
 
@@ -40,18 +47,23 @@ class VentaService
         ?float $cambio = null,
         ?string $observaciones = null,
     ): Venta {
-        $igvRate = 0.00;
+        $igvRate = (float) config('ventas.igv_rate', 0.13);
         $subtotal = 0;
+
+        $productosIds = array_column($detalles, 'producto_id');
+        $productos = Producto::with('precios')->findMany($productosIds);
+        $productosMap = $productos->keyBy('id');
 
         $detallesData = [];
         foreach ($detalles as $item) {
-            $producto = Producto::findOrFail($item['producto_id']);
-            $vigente = $producto->precios()
-                ->whereDate('fecha_inicio', '<=', now())
-                ->where(function ($q) {
-                    $q->whereNull('fecha_fin')->orWhereDate('fecha_fin', '>=', now());
-                })
-                ->latest('fecha_inicio')
+            $producto = $productosMap->get($item['producto_id']);
+            if (! $producto) {
+                throw new \RuntimeException("Producto ID {$item['producto_id']} no encontrado.");
+            }
+
+            $vigente = $producto->precios
+                ->filter(fn ($p) => $p->fecha_inicio->startOfDay()->lte(now()) && (! $p->fecha_fin || $p->fecha_fin->startOfDay()->gte(now())))
+                ->sortByDesc('fecha_inicio')
                 ->first();
             $precio = $vigente?->precio_venta ?? 0;
             $cantidad = (float) $item['cantidad'];
@@ -75,11 +87,13 @@ class VentaService
         $igv = ($subtotal - $descuento) * $igvRate;
         $total = $subtotal - $descuento + $igv;
 
-        return \DB::transaction(function () use ($detallesData, $tipoComprobante, $tipoPago, $clienteId, $descuento, $montoRecibido, $cambio, $observaciones, $subtotal, $igv, $total) {
+        return \DB::transaction(function () use ($detallesData, $productosMap, $tipoComprobante, $tipoPago, $clienteId, $descuento, $montoRecibido, $cambio, $observaciones, $subtotal, $igv, $total) {
+            $numeroComprobante = $this->generarComprobante($tipoComprobante);
+
             $venta = Venta::create([
                 'user_id' => auth()->id(),
                 'cliente_id' => $clienteId,
-                'numero_comprobante' => $this->generarComprobante($tipoComprobante),
+                'numero_comprobante' => $numeroComprobante,
                 'tipo_comprobante' => $tipoComprobante,
                 'fecha_emision' => now(),
                 'subtotal' => $subtotal,
@@ -93,16 +107,30 @@ class VentaService
                 'estado' => 'completado',
             ]);
 
+            $detallesInsert = [];
             foreach ($detallesData as $detalle) {
-                $detalle['venta_id'] = $venta->id;
-                DetalleVenta::create($detalle);
+                $detallesInsert[] = [
+                    'venta_id' => $venta->id,
+                    'producto_id' => $detalle['producto_id'],
+                    'cantidad' => $detalle['cantidad'],
+                    'precio_unitario' => $detalle['precio_unitario'],
+                    'descuento' => $detalle['descuento'],
+                    'subtotal' => $detalle['subtotal'],
+                    'created_by' => $venta->created_by,
+                    'updated_by' => $venta->updated_by,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            DetalleVenta::insert($detallesInsert);
 
-                $producto = Producto::find($detalle['producto_id']);
+            foreach ($detallesData as $detalle) {
+                $producto = $productosMap->get($detalle['producto_id']);
                 $this->stockService->registrarMovimiento(
                     producto: $producto,
                     tipo: TipoMovimientoStock::EgresoVenta,
                     cantidad: $detalle['cantidad'],
-                    motivo: "Venta #{$venta->numero_comprobante}",
+                    motivo: "Venta #{$numeroComprobante}",
                     referencia: $venta,
                 );
             }
@@ -115,13 +143,14 @@ class VentaService
     {
         $venta = $this->obtenerPorId($id);
         $venta->update($data);
+
         return $venta;
     }
 
     public function anular(int $id): Venta
     {
         return \DB::transaction(function () use ($id) {
-            $venta = $this->obtenerPorId($id);
+            $venta = Venta::with(['detalle.producto', 'cliente', 'user'])->lockForUpdate()->findOrFail($id);
 
             if ($venta->estado === 'anulado') {
                 throw new \RuntimeException('La venta ya se encuentra anulada.');
@@ -130,9 +159,8 @@ class VentaService
             $venta->update(['estado' => 'anulado']);
 
             foreach ($venta->detalle as $detalle) {
-                $producto = Producto::find($detalle->producto_id);
                 $this->stockService->registrarMovimiento(
-                    producto: $producto,
+                    producto: $detalle->producto,
                     tipo: TipoMovimientoStock::IngresoAnulacion,
                     cantidad: $detalle->cantidad,
                     motivo: "Anulación Venta #{$venta->numero_comprobante}",
@@ -153,7 +181,8 @@ class VentaService
     public function queryParaExportar(Request $request)
     {
         return Venta::with('cliente', 'user')
-            ->applyFilters($request);
+            ->applyFilters($request)
+            ->applySorting($request);
     }
 
     private function generarComprobante(string $tipo): string
@@ -164,10 +193,9 @@ class VentaService
             default => 'V',
         };
 
-        $ultimo = Venta::where('tipo_comprobante', $tipo)
-            ->withTrashed()
-            ->count();
+        $correlativo = Correlativo::where('tipo', $tipo)->lockForUpdate()->firstOrFail();
+        $correlativo->increment('ultimo');
 
-        return $prefix . '-' . str_pad((string)($ultimo + 1), 8, '0', STR_PAD_LEFT);
+        return $prefix . '-' . str_pad((string) $correlativo->ultimo, 8, '0', STR_PAD_LEFT);
     }
 }

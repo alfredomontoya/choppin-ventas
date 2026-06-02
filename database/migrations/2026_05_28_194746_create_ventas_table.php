@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('numero_comprobante', 50);
             $table->string('tipo_comprobante', 10);
             $table->datetime('fecha_emision');
-            $table->string('moneda', 3)->default('PEN');
+            $table->string('moneda', 3)->default('BOB');
             $table->decimal('tipo_cambio', 10, 4)->default(1);
             $table->decimal('subtotal', 10, 2);
             $table->decimal('igv', 10, 2);

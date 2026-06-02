@@ -4,8 +4,9 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import Autocomplete from '@/Components/ui/Autocomplete';
 import FavoritosGrid from '@/Components/ui/FavoritosGrid';
 import Modal from '@/Components/Modal';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useCallback, useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface ClienteOption {
   id: number;
@@ -32,6 +33,7 @@ interface Props {
   clientes: ClienteOption[];
   productos: ProductoOption[];
   productosFavoritos: ProductoOption[];
+  qrImage?: string | null;
 }
 
 export default function Form({ venta, return_url, clientes, productos, productosFavoritos }: Props) {
@@ -81,6 +83,21 @@ export default function Form({ venta, return_url, clientes, productos, productos
   const descuentoNum = Number(data.descuento) || 0;
   const total = subtotal - descuentoNum;
 
+  useEffect(() => {
+    if (erroresLocal.tipo_comprobante && data.tipo_comprobante) {
+      setErroresLocal((prev) => { const { tipo_comprobante: _, ...rest } = prev; return rest; });
+    }
+    if (erroresLocal.tipo_pago && data.tipo_pago) {
+      setErroresLocal((prev) => { const { tipo_pago: _, ...rest } = prev; return rest; });
+    }
+    if (erroresLocal.detalles && data.detalles.length > 0) {
+      setErroresLocal((prev) => { const { detalles: _, ...rest } = prev; return rest; });
+    }
+    if (showQRSection && data.tipo_pago !== 'qr') {
+      setShowQRSection(false);
+    }
+  }, [data.tipo_comprobante, data.tipo_pago, data.detalles.length]);
+
   const agregarODimensionar = (productoId: number, cantidad: number = 1) => {
     const idx = data.detalles.findIndex((d: { producto_id: number }) => d.producto_id === productoId);
     if (idx >= 0) {
@@ -94,6 +111,18 @@ export default function Form({ venta, return_url, clientes, productos, productos
 
   const handleSelectProducto = (producto: ProductoOption) => {
     agregarODimensionar(producto.id, 1);
+  };
+
+  const handleProductoSubmitQuery = (query: string) => {
+    const q = query.toLowerCase().trim();
+    const producto = productos.find(
+      (p) => p.codigo.toLowerCase() === q,
+    );
+    if (producto) {
+      agregarODimensionar(producto.id, 1);
+    } else {
+      toast.error(`Producto "${query}" no encontrado`);
+    }
   };
 
   const handleSelectCliente = (cliente: ClienteOption) => {
@@ -110,8 +139,13 @@ export default function Form({ venta, return_url, clientes, productos, productos
     setData('detalles', nuevos);
   };
 
+  const { props: pageProps } = usePage();
+  const qrImage = (pageProps as any).qrImage ?? null;
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showQRSection, setShowQRSection] = useState(false);
   const [montoRecibido, setMontoRecibido] = useState<string>('0');
+  const [erroresLocal, setErroresLocal] = useState<Record<string, string>>({});
 
   const submit = (e?: React.FormEvent | React.MouseEvent) => {
     e?.preventDefault();
@@ -121,15 +155,32 @@ export default function Form({ venta, return_url, clientes, productos, productos
       setData('monto_recibido', montoRecibido);
       setData('cambio', parseFloat(cambio.toFixed(2)));
       post(route('ventas.store'), {
-        onSuccess: () => setShowConfirmModal(false),
+        onSuccess: () => {
+          setShowConfirmModal(false);
+          setShowQRSection(false);
+        },
       });
     }
   };
 
   const abrirConfirmacion = (e: React.MouseEvent) => {
     e.preventDefault();
-    setMontoRecibido(total > 0 ? total.toFixed(2) : '0');
-    setShowConfirmModal(true);
+    const nuevosErrores: Record<string, string> = {};
+
+    if (!data.tipo_comprobante) nuevosErrores.tipo_comprobante = 'Seleccione un tipo de comprobante';
+    if (!data.tipo_pago) nuevosErrores.tipo_pago = 'Seleccione un tipo de pago';
+    if (data.detalles.length === 0) nuevosErrores.detalles = 'Agregue al menos un producto';
+
+    setErroresLocal(nuevosErrores);
+
+    if (Object.keys(nuevosErrores).length > 0) return;
+
+    if (data.tipo_pago === 'qr') {
+      setShowQRSection(true);
+    } else {
+      setMontoRecibido(total > 0 ? total.toFixed(2) : '0');
+      setShowConfirmModal(true);
+    }
   };
 
   const cambio = Math.max(0, (parseFloat(montoRecibido) || 0) - total);
@@ -234,6 +285,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                   { value: 'efectivo', label: 'Efectivo' },
                   { value: 'tarjeta', label: 'Tarjeta' },
                   { value: 'transferencia', label: 'Transferencia' },
+                  { value: 'qr', label: 'QR' },
                 ].map((op) => (
                   <label
                     key={op.value}
@@ -312,6 +364,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                   </div>
                 )}
                 onSelect={handleSelectProducto}
+                onSubmitQuery={handleProductoSubmitQuery}
                 inputClassName="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -437,22 +490,122 @@ export default function Form({ venta, return_url, clientes, productos, productos
         <InputError message={errors.observaciones} className="mt-2" />
       </div>
 
-      <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-        <PrimaryButton
-          disabled={processing}
-          onClick={isEdit ? undefined : abrirConfirmacion}
-          type={isEdit ? 'submit' : 'button'}
-        >
-          {processing ? 'Guardando...' : isEdit ? 'Actualizar' : 'Registrar Venta'}
-        </PrimaryButton>
-        <Link
-          href={route('ventas.index')}
-          className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-        >
-          Cancelar
-        </Link>
-      </div>
+      <div className="h-6" />
+
+      {Object.keys(erroresLocal).length > 0 && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-1">
+          <p className="text-sm font-medium text-red-700 dark:text-red-400">Corrija los siguientes errores:</p>
+          <ul className="text-sm text-red-600 dark:text-red-300 list-disc list-inside">
+            {erroresLocal.tipo_comprobante && <li>{erroresLocal.tipo_comprobante}</li>}
+            {erroresLocal.tipo_pago && <li>{erroresLocal.tipo_pago}</li>}
+            {erroresLocal.detalles && <li>{erroresLocal.detalles}</li>}
+          </ul>
+        </div>
+      )}
+
+      {!showQRSection && (
+        <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <PrimaryButton
+            disabled={processing}
+            onClick={isEdit ? undefined : abrirConfirmacion}
+            type={isEdit ? 'submit' : 'button'}
+          >
+            {processing ? 'Guardando...' : isEdit ? 'Actualizar' : 'Registrar Venta'}
+          </PrimaryButton>
+          <Link
+            href={route('ventas.index')}
+            className="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            Cancelar
+          </Link>
+        </div>
+      )}
     </form>
+
+      {/* Sección QR */}
+      {!isEdit && showQRSection && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Pago con QR</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Escanea el código QR desde tu aplicación bancaria para pagar
+            </p>
+          </div>
+          <div className="p-6">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              <div className="flex-shrink-0">
+                {qrImage ? (
+                  <img
+                    src={qrImage}
+                    alt="QR de cobro"
+                    className="w-80 h-80 object-contain border border-slate-200 dark:border-slate-700 rounded-lg"
+                  />
+                ) : (
+                  <div className="w-80 h-80 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-400 text-sm">
+                    QR no configurado
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 w-full space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-700">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">Total a pagar</span>
+                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                    Bs {total.toFixed(2)}
+                  </span>
+                </div>
+
+                {clienteSeleccionado && (
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                    Cliente: <span className="font-medium text-slate-800 dark:text-slate-200">
+                      {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                    </span>
+                  </div>
+                )}
+
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  Comprobante: <span className="font-medium text-slate-800 dark:text-slate-200">
+                    {data.tipo_comprobante === 'boleta' ? 'Boleta' : 'Factura'}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Productos:</p>
+                  <div className="divide-y divide-slate-100 dark:divide-slate-700/50 max-h-40 overflow-y-auto">
+                    {detalleConInfo.map((d: any, i: number) => (
+                      <div key={i} className="flex justify-between py-1.5 text-sm">
+                        <span className="text-slate-600 dark:text-slate-400 truncate mr-4">
+                          {d.nombre} x{d.cantidad}
+                        </span>
+                        <span className="text-slate-800 dark:text-slate-200 font-medium flex-shrink-0">
+                          Bs {d.subtotal.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-end gap-3">
+            <p className="text-xs text-slate-400 flex-1">
+              El cajero debe confirmar el pago después de verificar la transacción en su aplicación bancaria.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowQRSection(false)}
+              className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+            >
+              Cancelar
+            </button>
+            <PrimaryButton
+              disabled={processing}
+              onClick={submit}
+            >
+              {processing ? 'Guardando...' : 'Confirmar pago recibido'}
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
 
       {/* Modal de confirmación */}
       {!isEdit && (

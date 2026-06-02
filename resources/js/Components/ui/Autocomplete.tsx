@@ -10,6 +10,7 @@ interface AutocompleteProps<T extends BaseItem> {
   filterFn: (item: T, query: string) => boolean;
   renderItem: (item: T, highlighted: boolean) => React.ReactNode;
   onSelect: (item: T) => void;
+  onSubmitQuery?: (query: string) => void;
   inputClassName?: string;
   dropdownClassName?: string;
 }
@@ -20,6 +21,7 @@ export default function Autocomplete<T extends BaseItem>({
   filterFn,
   renderItem,
   onSelect,
+  onSubmitQuery,
   inputClassName = '',
   dropdownClassName = '',
 }: AutocompleteProps<T>) {
@@ -43,6 +45,17 @@ export default function Autocomplete<T extends BaseItem>({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (isOpen && highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+        handleSelect(filtered[highlightedIndex]);
+      } else if (query && onSubmitQuery) {
+        onSubmitQuery(query);
+        reset();
+      }
+      return;
+    }
+
     if (!isOpen) return;
 
     if (e.key === 'ArrowDown') {
@@ -51,11 +64,6 @@ export default function Autocomplete<T extends BaseItem>({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : filtered.length - 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
-        handleSelect(filtered[highlightedIndex]);
-      }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
     }

@@ -19,7 +19,7 @@ class StoreVentaRequest extends FormRequest
         return [
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
             'tipo_comprobante' => ['required', Rule::in(['boleta', 'factura'])],
-            'tipo_pago' => ['required', Rule::in(['efectivo', 'tarjeta', 'transferencia'])],
+            'tipo_pago' => ['required', Rule::in(['efectivo', 'tarjeta', 'transferencia', 'qr'])],
             'descuento' => ['nullable', 'numeric', 'min:0'],
             'monto_recibido' => ['nullable', 'numeric', 'min:0'],
             'cambio' => ['nullable', 'numeric', 'min:0'],
@@ -49,7 +49,7 @@ class StoreVentaRequest extends FormRequest
             'tipo_comprobante.required' => 'El tipo de comprobante es obligatorio.',
             'tipo_comprobante.in' => 'El tipo de comprobante debe ser boleta o factura.',
             'tipo_pago.required' => 'El tipo de pago es obligatorio.',
-            'tipo_pago.in' => 'El tipo de pago debe ser efectivo, tarjeta o transferencia.',
+            'tipo_pago.in' => 'El tipo de pago debe ser efectivo, tarjeta, transferencia o qr.',
             'detalles.required' => 'Debe agregar al menos un producto.',
             'detalles.min' => 'Debe agregar al menos un producto.',
             'detalles.*.producto_id.required' => 'Debe seleccionar un producto.',

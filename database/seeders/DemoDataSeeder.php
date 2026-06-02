@@ -67,8 +67,8 @@ class DemoDataSeeder extends Seeder
 
         $ultimaBoleta = Venta::where('tipo_comprobante', 'boleta')->withTrashed()->count();
         $ultimaFactura = Venta::where('tipo_comprobante', 'factura')->withTrashed()->count();
-        Correlativo::where('tipo', 'boleta')->update(['ultimo' => $ultimaBoleta]);
-        Correlativo::where('tipo', 'factura')->update(['ultimo' => $ultimaFactura]);
+        Correlativo::where('tipo', 'boleta')->update(['ultimo' => $ultimaBoleta, 'reiniciar_anual' => true]);
+        Correlativo::where('tipo', 'factura')->update(['ultimo' => $ultimaFactura, 'reiniciar_anual' => true]);
 
         Producto::where('stock_actual', '<', 0)->update(['stock_actual' => 0]);
 

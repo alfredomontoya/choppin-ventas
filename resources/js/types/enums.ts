@@ -26,6 +26,7 @@ export enum TipoPago {
   Efectivo = 'efectivo',
   Tarjeta = 'tarjeta',
   Transferencia = 'transferencia',
+  Qr = 'qr',
 }
 
 export enum Moneda {

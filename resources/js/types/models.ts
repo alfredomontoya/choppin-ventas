@@ -257,3 +257,20 @@ export interface ModuloPermisos {
   label: string;
   permisos: string[];
 }
+
+export interface Correlativo {
+  id: number;
+  tipo: string;
+  ultimo: number;
+  reiniciar_anual: boolean;
+  year: number | null;
+  ultimo_reset_en: string | null;
+  resets_count: number;
+  ultimo_reset: CorrelativoReset | null;
+}
+
+export interface CorrelativoReset {
+  glosa: string;
+  user_name: string;
+  created_at: string;
+}

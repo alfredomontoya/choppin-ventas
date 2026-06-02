@@ -194,8 +194,30 @@ class VentaService
         };
 
         $correlativo = Correlativo::where('tipo', $tipo)->lockForUpdate()->firstOrFail();
+        $currentYear = (int) now()->year;
+
+        if ($correlativo->reiniciar_anual && $correlativo->year !== $currentYear) {
+            $ultimoAnterior = $correlativo->ultimo;
+            $correlativo->ultimo = 0;
+            $correlativo->year = $currentYear;
+            $correlativo->ultimo_reset_en = now();
+            $correlativo->save();
+
+            $correlativo->resets()->create([
+                'tipo' => $correlativo->tipo,
+                'ultimo_anterior' => $ultimoAnterior,
+                'user_id' => auth()->id(),
+                'glosa' => "Reinicio automático por cambio de año ({$currentYear}).",
+            ]);
+        }
+
         $correlativo->increment('ultimo');
 
-        return $prefix . '-' . str_pad((string) $correlativo->ultimo, 8, '0', STR_PAD_LEFT);
+        if ($correlativo->year === null) {
+            $correlativo->year = $currentYear;
+            $correlativo->save();
+        }
+
+        return $prefix . '-' . $correlativo->year . '-' . str_pad((string) $correlativo->ultimo, 8, '0', STR_PAD_LEFT);
     }
 }

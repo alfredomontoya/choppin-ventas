@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\CorrelativoController;
+use App\Http\Controllers\Admin\QRController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -16,4 +18,13 @@ Route::middleware(['auth', 'permission:usuarios.ver'])->prefix('admin')->name('a
     Route::delete('usuarios/{usuario}', [UserController::class, 'destroy'])->name('usuarios.destroy');
 
     Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+
+    Route::middleware('permission:configuracion.ver')->group(function () {
+        Route::get('correlativos', [CorrelativoController::class, 'index'])->name('correlativos.index');
+        Route::put('correlativos/{correlativo}', [CorrelativoController::class, 'update'])->name('correlativos.update');
+        Route::post('correlativos/{correlativo}/reset', [CorrelativoController::class, 'reset'])->name('correlativos.reset');
+
+        Route::get('qr', [QRController::class, 'index'])->name('qr.index');
+        Route::post('qr', [QRController::class, 'update'])->name('qr.update');
+    });
 });

@@ -11,4 +11,8 @@ return [
         'phone' => env('STORE_PHONE', '777-123456'),
         'nit' => env('STORE_NIT', '123456789'),
     ],
+
+    'qr' => [
+        'image_path' => env('QR_IMAGE_PATH', '/storage/qr/qr-cobro.png'),
+    ],
 ];

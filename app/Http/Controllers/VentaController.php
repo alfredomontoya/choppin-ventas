@@ -33,6 +33,8 @@ class VentaController extends Controller
         /** @var User $user */
         $user = auth()->user();
 
+        $qrPath = config('ventas.qr.image_path');
+
         return inertia('Ventas/Create', [
             'return_url' => $request->query('return_url') ?: url()->previous(),
             'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'tipo_documento', 'numero_documento']),
@@ -42,6 +44,7 @@ class VentaController extends Controller
                 ->limit(200)
                 ->get(),
             'productosFavoritos' => $user->productosFavoritos,
+            'qrImage' => $qrPath,
         ]);
     }
 

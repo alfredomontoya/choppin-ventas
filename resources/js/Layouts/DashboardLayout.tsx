@@ -12,6 +12,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(true);
+  const [configOpen, setConfigOpen] = useState(true);
 
   const allNav = useMemo(() => [
     { name: 'Dashboard', href: route('dashboard'), icon: '◻', permission: null as string | null },
@@ -176,6 +177,54 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
               href={route('admin.usuarios.index')}
               onClick={() => setMobileSidebarOpen(false)}
               title="Admin"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
+            >
+              <span className="text-lg shrink-0">⚙</span>
+            </Link>
+          ))}
+
+          {/* Configuración submenu */}
+          {can('configuracion.ver') && (sidebarOpen ? (
+            <div>
+              <button
+                onClick={() => setConfigOpen(!configOpen)}
+                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
+              >
+                <span className="text-lg shrink-0">⚙</span>
+                <span className="flex items-center justify-between flex-1">
+                  Configuración
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform ${configOpen ? 'rotate-90' : ''}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </button>
+              {configOpen && (
+                <div className="ml-3 mt-1 space-y-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+                  <Link
+                    href={route('admin.correlativos.index')}
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+                  >
+                    🔢 Correlativos
+                  </Link>
+                  <Link
+                    href={route('admin.qr.index')}
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+                  >
+                    📱 QR
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href={route('admin.correlativos.index')}
+              onClick={() => setMobileSidebarOpen(false)}
+              title="Configuración"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
             >
               <span className="text-lg shrink-0">⚙</span>

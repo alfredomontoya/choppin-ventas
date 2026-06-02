@@ -1,9 +1,8 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
-import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
 import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 const currency = (n: number) => {
   if (n == null || isNaN(n)) return 'Bs 0.00';
@@ -12,21 +11,14 @@ const currency = (n: number) => {
 
 export default function Show({ venta, url_anterior }: { venta: any; url_anterior?: string }) {
   const { flash } = usePage().props as any;
-  const [showAnular, setShowAnular] = useState(false);
 
   useEffect(() => {
     if (flash?.success) toast.success(flash.success);
     if (flash?.error) toast.error(flash.error);
   }, [flash]);
 
-  const anular = () => {
-    router.delete(route('ventas.destroy', venta.id), {
-      onSuccess: () => setShowAnular(false),
-    });
-  };
-
-  const imprimir = (tipo: 'nota' | 'factura') => {
-    const url = route('ventas.imprimir', [venta.id, { tipo }]);
+  const imprimir = () => {
+    const url = route('ventas.imprimir', [venta.id, { tipo: 'nota' }]);
     window.open(url, '_blank', 'width=400,height=700');
   };
 
@@ -56,44 +48,18 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={route('ventas.create', { return_url: url_anterior ?? undefined })}
-              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
-            >
-              + Nueva Venta
-            </Link>
-            <Link
               href={url_anterior ?? route('ventas.index')}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Volver
             </Link>
             {venta.estado === 'completado' && (
-              <>
-                <button
-                  onClick={() => imprimir('nota')}
-                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-sky-600 text-white text-xs md:text-sm hover:bg-sky-700 transition-colors"
-                >
-                  🧾 Nota
-                </button>
-                <button
-                  onClick={() => imprimir('factura')}
-                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-sky-600 text-white text-xs md:text-sm hover:bg-sky-700 transition-colors"
-                >
-                  🖨️ Factura
-                </button>
-                <Link
-                  href={route('ventas.edit', [venta.id, { return_url: url_anterior ?? undefined }])}
-                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"
-                >
-                  Editar
-                </Link>
-                <button
-                  onClick={() => setShowAnular(true)}
-                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-red-600 text-white text-xs md:text-sm hover:bg-red-700 transition-colors"
-                >
-                  Anular
-                </button>
-              </>
+              <button
+                onClick={imprimir}
+                className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-sky-600 text-white text-xs md:text-sm hover:bg-sky-700 transition-colors"
+              >
+                🖨️ Imprimir comprobante
+              </button>
             )}
           </div>
         </div>
@@ -149,16 +115,14 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
                     {currency(Number(venta.subtotal))}
                   </td>
                 </tr>
-                {Number(venta.descuento) > 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-1 text-right text-sm text-slate-500">
-                      Descuento
-                    </td>
-                    <td className="px-4 py-1 text-right text-sm text-red-500">
-                      -{currency(Number(venta.descuento))}
-                    </td>
-                  </tr>
-                )}
+                <tr>
+                  <td colSpan={3} className="px-4 py-1 text-right text-sm text-slate-500">
+                    Descuento
+                  </td>
+                  <td className="px-4 py-1 text-right text-sm text-red-500">
+                    -{currency(Number(venta.descuento))}
+                  </td>
+                </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-3 text-right text-base font-bold text-slate-900 dark:text-white">
                     Total
@@ -180,13 +144,6 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
         )}
       </div>
 
-      <ConfirmDialog
-        open={showAnular}
-        onClose={() => setShowAnular(false)}
-        onConfirm={anular}
-        title="Confirmar anulación"
-        message={`¿Estás seguro de anular la venta #${venta.numero_comprobante}? Se revertirá el stock de los productos. Esta acción no se puede deshacer.`}
-      />
     </>
   );
 }

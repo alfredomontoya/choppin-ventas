@@ -214,7 +214,21 @@ export default function Form({ venta, return_url, clientes, productos, productos
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Cliente */}
             <div>
-              <InputLabel htmlFor="cliente_autocomplete" value="Cliente" />
+              <div className="flex items-center gap-2">
+                <InputLabel htmlFor="cliente_autocomplete" value="Cliente" />
+                {clienteSeleccionado && (
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                    {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                    <button
+                      type="button"
+                      onClick={() => setData('cliente_id', null)}
+                      className="text-indigo-400 hover:text-indigo-600 ml-0.5"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
               <Autocomplete<ClienteOption>
                 items={clientes}
                 placeholder="Buscar por nombre o documento..."
@@ -239,39 +253,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                 onSelect={handleSelectCliente}
                 inputClassName="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              {clienteSeleccionado && (
-                <div className="mt-1.5 flex items-center justify-between px-3 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-sm">
-                  <span className="text-indigo-700 dark:text-indigo-300">
-                    {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setData('cliente_id', null)}
-                    className="text-indigo-400 hover:text-indigo-600 text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
               <InputError message={errors.cliente_id} className="mt-2" />
-            </div>
-
-            {/* Tipo Comprobante */}
-            <div>
-              <div className="flex items-center gap-1">
-                <InputLabel htmlFor="tipo_comprobante" value="Tipo de Comprobante" />
-                <span className="text-red-500 text-sm">*</span>
-              </div>
-              <select
-                id="tipo_comprobante"
-                value={data.tipo_comprobante}
-                onChange={(e) => setData('tipo_comprobante', e.target.value)}
-                className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="boleta">Boleta</option>
-                <option value="factura">Factura</option>
-              </select>
-              <InputError message={errors.tipo_comprobante} className="mt-2" />
             </div>
 
             {/* Tipo Pago — Radio Buttons */}
@@ -310,20 +292,6 @@ export default function Form({ venta, return_url, clientes, productos, productos
               <InputError message={errors.tipo_pago} className="mt-2" />
             </div>
 
-            {/* Descuento */}
-            <div>
-              <InputLabel htmlFor="descuento" value="Descuento (Bs)" />
-              <input
-                id="descuento"
-                type="number"
-                min="0"
-                step="0.01"
-                value={data.descuento}
-                onChange={(e) => setData('descuento', e.target.value as any)}
-                className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <InputError message={errors.descuento} className="mt-2" />
-            </div>
           </div>
 
           {/* SECCIÓN 2: Productos */}
@@ -547,6 +515,19 @@ export default function Form({ venta, return_url, clientes, productos, productos
                 )}
               </div>
               <div className="flex-1 w-full space-y-4">
+                <div>
+                  <InputLabel htmlFor="descuento_qr" value="Descuento (Bs)" />
+                  <input
+                    id="descuento_qr"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={data.descuento}
+                    onChange={(e) => setData('descuento', e.target.value as any)}
+                    className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
                 <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-700">
                   <span className="text-sm text-slate-500 dark:text-slate-400">Total a pagar</span>
                   <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
@@ -616,6 +597,19 @@ export default function Form({ venta, return_url, clientes, productos, productos
             </h3>
 
             <div className="space-y-4">
+              <div>
+                <InputLabel htmlFor="descuento_modal" value="Descuento (Bs)" />
+                <input
+                  id="descuento_modal"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={data.descuento}
+                  onChange={(e) => setData('descuento', e.target.value as any)}
+                  className="mt-1.5 block w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
               <div className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700">
                 <span className="text-sm text-slate-500 dark:text-slate-400">Total</span>
                 <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">

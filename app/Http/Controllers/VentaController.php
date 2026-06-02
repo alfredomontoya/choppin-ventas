@@ -12,6 +12,7 @@ use App\Models\Producto;
 use App\Models\User;
 use App\Services\VentaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class VentaController extends Controller
@@ -42,8 +43,19 @@ class VentaController extends Controller
                 ->where('activo', true)
                 ->orderBy('nombre')
                 ->limit(200)
-                ->get(),
-            'productosFavoritos' => $user->productosFavoritos,
+                ->get()
+                ->map(function (Producto $producto) {
+                    if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
+                        $producto->imagen = Storage::url($producto->imagen);
+                    }
+                    return $producto;
+                }),
+            'productosFavoritos' => $user->productosFavoritos->map(function (Producto $producto) {
+                if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
+                    $producto->imagen = Storage::url($producto->imagen);
+                }
+                return $producto;
+            }),
             'qrImage' => $qrPath,
         ]);
     }

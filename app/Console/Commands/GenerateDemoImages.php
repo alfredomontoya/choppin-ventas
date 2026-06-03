@@ -75,7 +75,12 @@ class GenerateDemoImages extends Command
 
             $ruta = 'productos/' . Str::slug($producto->nombre . '-' . $producto->id) . '.jpg';
             Storage::disk('public')->put($ruta, $contenido);
-            $producto->updateQuietly(['imagen' => $ruta]);
+
+            ProductoImagen::create([
+                'producto_id' => $producto->id,
+                'ruta' => $ruta,
+                'orden' => 0,
+            ]);
 
             $this->crearImagenesAdicionales($producto, $rgb);
             $this->info('✓');

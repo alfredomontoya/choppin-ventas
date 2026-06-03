@@ -25,28 +25,23 @@ class ProveedorController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
-        return inertia('Proveedores/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
-        ]);
+        return inertia('Proveedores/Create');
     }
 
     public function store(StoreProveedorRequest $request)
     {
         $proveedor = $this->service->crear($request->validated());
 
-        return redirect()->route('proveedores.show', [
-            'proveedore' => $proveedor,
-            'url_anterior' => $request->input('return_url') ?: route('proveedores.index'),
-        ])->with('success', 'Proveedor creado correctamente.');
+        return redirect()->route('proveedores.show', $proveedor->id)
+            ->with('success', 'Proveedor creado correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id): \Inertia\Response
     {
         return inertia('Proveedores/Show', [
             'proveedor' => $this->service->obtenerPorId($id),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('proveedores.index'),
         ]);
     }
 
@@ -54,17 +49,14 @@ class ProveedorController extends Controller
     {
         $this->service->actualizar($id, $request->validated());
 
-        return redirect()->route('proveedores.show', [
-            'proveedore' => $id,
-            'url_anterior' => $request->input('return_url') ?: route('proveedores.index'),
-        ])->with('success', 'Proveedor actualizado correctamente.');
+        return redirect()->route('proveedores.show', $id)
+            ->with('success', 'Proveedor actualizado correctamente.');
     }
 
-    public function edit(int $id, Request $request)
+    public function edit(int $id): \Inertia\Response
     {
         return inertia('Proveedores/Edit', [
             'proveedor' => $this->service->obtenerPorId($id),
-            'return_url' => $request->query('return_url') ?: url()->previous(),
         ]);
     }
 

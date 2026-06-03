@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { saveReturnUrl } from '@/lib/navigation';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { Pagination } from '@/Components/ui/Pagination';
@@ -109,7 +110,8 @@ export default function Index({ categoria_productos, filtros }: { categoria_prod
             </p>
           </div>
           <Link
-            href={route('categoria_productos.create', { return_url: window.location.href })}
+            href={route('categoria_productos.create')}
+            onClick={() => saveReturnUrl()}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
           >
             + Nueva Categoría
@@ -192,7 +194,7 @@ export default function Index({ categoria_productos, filtros }: { categoria_prod
                       ))}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={route('categoria_productos.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
+                          <Link href={route('categoria_productos.show', item.id)} onClick={() => saveReturnUrl()} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
                             👁
                           </Link>
                           <Link href={route('categoria_productos.edit', item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Editar">

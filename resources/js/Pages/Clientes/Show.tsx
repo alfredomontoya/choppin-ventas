@@ -2,10 +2,11 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
+import { getReturnUrl, saveReturnUrl } from '@/lib/navigation';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 
-export default function Show({ cliente, url_anterior }: { cliente: any; url_anterior?: string }) {
+export default function Show({ cliente }: { cliente: any }) {
   const { flash } = usePage().props as any;
   const [showDelete, setShowDelete] = useState(false);
 
@@ -21,15 +22,14 @@ export default function Show({ cliente, url_anterior }: { cliente: any; url_ante
   };
 
   const tipoDocLabel: Record<string, string> = {
-    dni: 'DNI',
-    ce: 'Carné de Extranjería',
-    ruc: 'RUC',
+    ci: 'CÉDULA DE IDENTIDAD (CI)',
+    ce: 'CÉDULA DE EXTRANJERO (CE)',
+    nit: 'NÚMERO DE IDENTIFICACIÓN TRIBUTARIA (NIT)',
   };
 
   const fields = [
     { label: 'ID', value: cliente.id, type: 'text' },
     { label: 'Nombre', value: cliente.nombre, type: 'text' },
-    { label: 'Apellido', value: cliente.apellido, type: 'text' },
     { label: 'Tipo de Documento', value: tipoDocLabel[cliente.tipo_documento] ?? cliente.tipo_documento, type: 'text' },
     { label: 'N° de Documento', value: cliente.numero_documento, type: 'text' },
     { label: 'Teléfono', value: cliente.telefono ?? '—', type: 'text' },
@@ -44,7 +44,7 @@ export default function Show({ cliente, url_anterior }: { cliente: any; url_ante
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {cliente.nombre} {cliente.apellido}
+              {cliente.nombre}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {cliente.tipo_documento.toUpperCase()}: {cliente.numero_documento}
@@ -52,22 +52,24 @@ export default function Show({ cliente, url_anterior }: { cliente: any; url_ante
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={route('clientes.create', { return_url: url_anterior ?? undefined })}
-              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
-            >
-              + Nuevo Cliente
-            </Link>
-            <Link
-              href={url_anterior ?? route('clientes.index')}
+              href={getReturnUrl(route('clientes.index'))}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Aceptar
             </Link>
             <Link
-              href={route('clientes.edit', [cliente.id, { return_url: url_anterior ?? undefined }])}
+              href={route('clientes.edit', cliente.id)}
+              onClick={() => saveReturnUrl()}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"
             >
               Editar
+            </Link>
+            <Link
+              href={route('clientes.create')}
+              onClick={() => saveReturnUrl()}
+              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
+            >
+              + Nuevo Cliente
             </Link>
             <button
               onClick={() => setShowDelete(true)}
@@ -111,7 +113,7 @@ export default function Show({ cliente, url_anterior }: { cliente: any; url_ante
         onClose={() => setShowDelete(false)}
         onConfirm={eliminar}
         title="Confirmar eliminación"
-        message={`¿Estás seguro de eliminar a ${cliente.nombre} ${cliente.apellido}? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.`}
       />
     </>
   );

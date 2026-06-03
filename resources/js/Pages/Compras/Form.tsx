@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import Autocomplete from '@/Components/ui/Autocomplete';
 import Modal from '@/Components/Modal';
 import { Link, useForm } from '@inertiajs/react';
+import { getReturnUrl } from '@/lib/navigation';
 import { useCallback, useState } from 'react';
 
 interface ProveedorOption {
@@ -42,7 +43,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
       cantidad: Number(d.cantidad),
       precio_unitario: Number(d.precio_unitario),
     })) ?? [] as { producto_id: number; cantidad: number; precio_unitario: number }[],
-    return_url: return_url ?? '',
+    return_url: return_url ?? getReturnUrl(route('compras.index')),
   });
 
   const productoMap = new Map(productos.map((p: ProductoOption) => [p.id, p]));
@@ -146,10 +147,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Proveedor */}
             <div>
-              <div className="flex items-center gap-1">
-                <InputLabel htmlFor="proveedor_autocomplete" value="Proveedor" />
-                <span className="text-red-500 text-sm">*</span>
-              </div>
+              <InputLabel htmlFor="proveedor_autocomplete" value="Proveedor" required />
               <Autocomplete<ProveedorOption>
                 items={proveedores}
                 placeholder="Buscar por nombre, contacto o NIT/CI..."
@@ -193,10 +191,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
 
             {/* Tipo Comprobante */}
             <div>
-              <div className="flex items-center gap-1">
-                <InputLabel htmlFor="tipo_comprobante" value="Tipo de Comprobante" />
-                <span className="text-red-500 text-sm">*</span>
-              </div>
+              <InputLabel htmlFor="tipo_comprobante" value="Tipo de Comprobante" required />
               <select
                 id="tipo_comprobante"
                 value={data.tipo_comprobante}
@@ -366,7 +361,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
 
       {/* SECCIÓN 3: Observaciones */}
       <div>
-        <InputLabel htmlFor="observaciones" value="Observaciones" />
+                <InputLabel htmlFor="observaciones" value="Observaciones" optional />
         <textarea
           id="observaciones"
           rows={3}

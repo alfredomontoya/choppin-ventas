@@ -26,7 +26,6 @@ class ClienteExport implements FromQuery, WithHeadings, WithMapping
         return [
             'ID',
             'Nombre',
-            'Apellido',
             'Tipo Documento',
             'Número Documento',
             'Teléfono',
@@ -40,7 +39,6 @@ class ClienteExport implements FromQuery, WithHeadings, WithMapping
         return [
             $cliente->id,
             $cliente->nombre,
-            $cliente->apellido,
             strtoupper($cliente->tipo_documento),
             $cliente->numero_documento,
             $cliente->telefono ?? '—',

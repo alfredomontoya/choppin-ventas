@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { saveReturnUrl } from '@/lib/navigation';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { Pagination } from '@/Components/ui/Pagination';
@@ -37,7 +38,7 @@ const stockCell = (p: any) => {
 };
 
 const columnas = [
-  { key: 'imagen', label: '', render: (p: any) => <ImageCell src={p.imagen ?? null} name={p.nombre} /> },
+  { key: 'imagen', label: '', render: (p: any) => <ImageCell src={p.imagenes?.[0]?.ruta ?? null} name={p.nombre} /> },
   { key: 'codigo', label: 'Código' },
   { key: 'nombre', label: 'Nombre' },
   { key: 'categoria', label: 'Categoría', render: (p: any) => p.categoria?.nombre ?? '—' },
@@ -167,7 +168,8 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
             </p>
           </div>
           <Link
-            href={route('productos.create', { return_url: window.location.href })}
+            href={route('productos.create')}
+            onClick={() => saveReturnUrl()}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
           >
             + Nuevo Producto
@@ -285,7 +287,7 @@ export default function Index({ productos, filtros, productosFavoritos }: { prod
                       ))}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={route('productos.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
+                          <Link href={route('productos.show', item.id)} onClick={() => saveReturnUrl()} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
                             👁
                           </Link>
                           <Link href={route('productos.edit', item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Editar">

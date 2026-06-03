@@ -12,7 +12,7 @@ const ventaColumns = [
   {
     key: 'cliente',
     header: 'Cliente',
-    render: (v: Venta) => v.cliente ? `${v.cliente.nombre} ${v.cliente.apellido}` : '—',
+    render: (v: Venta) => v.cliente ? v.cliente.nombre : '—',
   },
   {
     key: 'total',

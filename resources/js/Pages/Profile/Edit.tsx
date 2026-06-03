@@ -3,7 +3,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { Badge } from '@/Components/ui/Badge';
 import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
+import PasswordInput from '@/Components/PasswordInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import toast from 'react-hot-toast';
@@ -104,9 +104,8 @@ function PasswordForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="md:col-span-2">
             <InputLabel htmlFor="current_password" value="Contraseña Actual" />
-            <TextInput
+            <PasswordInput
               id="current_password"
-              type="password"
               value={passwordInput.data.current_password}
               onChange={(e) => passwordInput.setData('current_password', e.target.value)}
               className="mt-1.5 block w-full md:w-1/2"
@@ -116,9 +115,8 @@ function PasswordForm() {
           </div>
           <div>
             <InputLabel htmlFor="password" value="Nueva Contraseña" />
-            <TextInput
+            <PasswordInput
               id="password"
-              type="password"
               value={passwordInput.data.password}
               onChange={(e) => passwordInput.setData('password', e.target.value)}
               className="mt-1.5 block w-full"
@@ -128,9 +126,8 @@ function PasswordForm() {
           </div>
           <div>
             <InputLabel htmlFor="password_confirmation" value="Confirmar Nueva Contraseña" />
-            <TextInput
+            <PasswordInput
               id="password_confirmation"
-              type="password"
               value={passwordInput.data.password_confirmation}
               onChange={(e) => passwordInput.setData('password_confirmation', e.target.value)}
               className="mt-1.5 block w-full"

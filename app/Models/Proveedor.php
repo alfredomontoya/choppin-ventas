@@ -40,6 +40,36 @@ class Proveedor extends Model
         return $this->hasMany(OrdenCompra::class);
     }
 
+    public function setNombreAttribute($value): void
+    {
+        $this->attributes['nombre'] = mb_strtoupper(trim($value));
+    }
+
+    public function setContactoAttribute($value): void
+    {
+        $this->attributes['contacto'] = $value ? mb_strtoupper(trim($value)) : null;
+    }
+
+    public function setTelefonoAttribute($value): void
+    {
+        $this->attributes['telefono'] = $value ? trim($value) : null;
+    }
+
+    public function setEmailAttribute($value): void
+    {
+        $this->attributes['email'] = $value ? mb_strtolower(trim($value)) : null;
+    }
+
+    public function setDireccionAttribute($value): void
+    {
+        $this->attributes['direccion'] = $value ? mb_strtoupper(trim($value)) : null;
+    }
+
+    public function setNitCiAttribute($value): void
+    {
+        $this->attributes['nit_ci'] = $value ? mb_strtoupper(trim($value)) : null;
+    }
+
     public function getSearchColumns(): array
     {
         return ['nombre', 'contacto', 'telefono', 'email', 'nit_ci'];

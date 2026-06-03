@@ -3,6 +3,7 @@ import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Link, useForm } from '@inertiajs/react';
+import { getReturnUrl } from '@/lib/navigation';
 import { useState } from 'react';
 
 interface Props {
@@ -16,7 +17,7 @@ export default function Form({ return_url, productos = [] }: Props) {
     tipo: 'ingreso_manual' as string,
     cantidad: '' as string | number,
     motivo: '',
-    return_url: return_url ?? '',
+    return_url: return_url ?? getReturnUrl(route('almacen.index')),
   });
 
   const handleTipoChange = (tipo: string) => {
@@ -39,8 +40,7 @@ export default function Form({ return_url, productos = [] }: Props) {
     <form onSubmit={submit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <InputLabel htmlFor="producto_id" value="Producto" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="producto_id" value="Producto" required />
           <select
             id="producto_id"
             value={data.producto_id}
@@ -56,8 +56,7 @@ export default function Form({ return_url, productos = [] }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="tipo" value="Tipo de Movimiento" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="tipo" value="Tipo de Movimiento" required />
           <select
             id="tipo"
             value={data.tipo}
@@ -72,8 +71,7 @@ export default function Form({ return_url, productos = [] }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="cantidad" value={data.tipo === 'ajuste' ? 'Cantidad (positivo = aumenta, negativo = reduce)' : 'Cantidad'} />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="cantidad" value={data.tipo === 'ajuste' ? 'Cantidad (positivo = aumenta, negativo = reduce)' : 'Cantidad'} required />
           <TextInput
             id="cantidad"
             type="number"
@@ -87,8 +85,7 @@ export default function Form({ return_url, productos = [] }: Props) {
         </div>
 
         <div className="md:col-span-2">
-          <InputLabel htmlFor="motivo" value="Motivo" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="motivo" value="Motivo" required />
           <textarea
             id="motivo"
             value={data.motivo}

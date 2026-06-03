@@ -25,7 +25,6 @@ class Producto extends Model
         'codigo',
         'nombre',
         'descripcion',
-        'imagen',
         'stock_actual',
         'stock_minimo',
         'unidad_medida',

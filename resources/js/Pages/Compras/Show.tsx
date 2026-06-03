@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
+import { getReturnUrl, saveReturnUrl } from '@/lib/navigation';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import toast from 'react-hot-toast';
@@ -22,7 +23,7 @@ interface Discrepancia {
   nuevo_precio_venta_sugerido: number;
 }
 
-export default function Show({ orden, url_anterior }: { orden: any; url_anterior?: string }) {
+export default function Show({ orden }: { orden: any }) {
   const { flash } = usePage().props as any;
   const [showAnular, setShowAnular] = useState(false);
   const [showRecibir, setShowRecibir] = useState(false);
@@ -127,13 +128,7 @@ export default function Show({ orden, url_anterior }: { orden: any; url_anterior
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={route('compras.create', { return_url: url_anterior ?? undefined })}
-              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
-            >
-              + Nueva Orden
-            </Link>
-            <Link
-              href={url_anterior ?? route('compras.index')}
+              href={getReturnUrl(route('compras.index'))}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Volver
@@ -141,7 +136,8 @@ export default function Show({ orden, url_anterior }: { orden: any; url_anterior
             {orden.estado === 'pendiente' && (
               <>
                 <Link
-                  href={route('compras.edit', [orden.id, { return_url: url_anterior ?? undefined }])}
+                  href={route('compras.edit', orden.id)}
+                  onClick={() => saveReturnUrl()}
                   className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"
                 >
                   Editar
@@ -152,13 +148,22 @@ export default function Show({ orden, url_anterior }: { orden: any; url_anterior
                 >
                   Recibir
                 </button>
-                <button
-                  onClick={() => setShowAnular(true)}
-                  className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-red-600 text-white text-xs md:text-sm hover:bg-red-700 transition-colors"
-                >
-                  Anular
-                </button>
               </>
+            )}
+            <Link
+              href={route('compras.create')}
+              onClick={() => saveReturnUrl()}
+              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
+            >
+              + Nueva Orden
+            </Link>
+            {orden.estado === 'pendiente' && (
+              <button
+                onClick={() => setShowAnular(true)}
+                className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-red-600 text-white text-xs md:text-sm hover:bg-red-700 transition-colors"
+              >
+                Anular
+              </button>
             )}
           </div>
         </div>

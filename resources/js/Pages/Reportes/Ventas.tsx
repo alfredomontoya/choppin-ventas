@@ -23,7 +23,7 @@ const columnas = [
   { key: 'fecha_emision', label: 'Fecha' },
   { key: 'numero_comprobante', label: 'Comprobante' },
   { key: 'tipo_comprobante', label: 'Tipo', render: (v: ReporteVenta) => v.tipo_comprobante === 'boleta' ? 'Boleta' : 'Factura' },
-  { key: 'cliente', label: 'Cliente', render: (v: ReporteVenta) => v.cliente ? `${v.cliente.nombre} ${v.cliente.apellido}` : '—' },
+  { key: 'cliente', label: 'Cliente', render: (v: ReporteVenta) => v.cliente ? v.cliente.nombre : '—' },
   { key: 'tipo_pago', label: 'Pago', render: (v: ReporteVenta) => v.tipo_pago.charAt(0).toUpperCase() + v.tipo_pago.slice(1) },
   { key: 'subtotal', label: 'Subtotal', render: (v: ReporteVenta) => `Bs ${Number(v.subtotal).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
   { key: 'igv', label: 'IGV', render: (v: ReporteVenta) => `Bs ${Number(v.igv).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
@@ -164,7 +164,7 @@ export default function Ventas({ data, resumen, filtros }: Props) {
                       </td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{item.numero_comprobante}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.tipo_comprobante === 'boleta' ? 'Boleta' : 'Factura'}</td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.cliente ? `${item.cliente.nombre} ${item.cliente.apellido}` : '—'}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.cliente ? item.cliente.nombre : '—'}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.tipo_pago.charAt(0).toUpperCase() + item.tipo_pago.slice(1)}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.subtotal).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.igv).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>

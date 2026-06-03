@@ -3,6 +3,7 @@ import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Link, useForm } from '@inertiajs/react';
+import { getReturnUrl } from '@/lib/navigation';
 
 interface Props {
   proveedor?: any;
@@ -19,7 +20,7 @@ export default function Form({ proveedor, return_url }: Props) {
     email: proveedor?.email ?? '',
     direccion: proveedor?.direccion ?? '',
     nit_ci: proveedor?.nit_ci ?? '',
-    return_url: return_url ?? '',
+    return_url: return_url ?? getReturnUrl(route('proveedores.index')),
   });
 
   const submit = (e: React.FormEvent) => {
@@ -33,8 +34,7 @@ export default function Form({ proveedor, return_url }: Props) {
     <form onSubmit={submit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <InputLabel htmlFor="nombre" value="Nombre" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="nombre" value="Nombre" required />
           <TextInput
             id="nombre"
             type="text"
@@ -46,7 +46,7 @@ export default function Form({ proveedor, return_url }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="contacto" value="Contacto" />
+          <InputLabel htmlFor="contacto" value="Contacto" optional />
           <TextInput
             id="contacto"
             type="text"
@@ -58,7 +58,7 @@ export default function Form({ proveedor, return_url }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="telefono" value="Teléfono" />
+          <InputLabel htmlFor="telefono" value="Teléfono" optional />
           <TextInput
             id="telefono"
             type="text"
@@ -70,7 +70,7 @@ export default function Form({ proveedor, return_url }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="email" value="Correo Electrónico" />
+          <InputLabel htmlFor="email" value="Correo Electrónico" optional />
           <TextInput
             id="email"
             type="email"
@@ -82,7 +82,7 @@ export default function Form({ proveedor, return_url }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="nit_ci" value="NIT/CI" />
+          <InputLabel htmlFor="nit_ci" value="NIT/CI" optional />
           <TextInput
             id="nit_ci"
             type="text"
@@ -94,7 +94,7 @@ export default function Form({ proveedor, return_url }: Props) {
         </div>
 
         <div className="md:col-span-2">
-          <InputLabel htmlFor="direccion" value="Dirección" />
+          <InputLabel htmlFor="direccion" value="Dirección" optional />
           <textarea
             id="direccion"
             value={data.direccion}

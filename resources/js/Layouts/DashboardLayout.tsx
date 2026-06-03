@@ -11,25 +11,44 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(true);
-  const [configOpen, setConfigOpen] = useState(true);
+
+  const currentRoute = route().current() ?? '';
+
+  const [adminOpen, setAdminOpen] = useState(() =>
+    ['admin.usuarios', 'admin.roles'].some((r) => currentRoute.startsWith(r))
+  );
+  const [configOpen, setConfigOpen] = useState(() =>
+    ['admin.correlativos', 'admin.qr'].some((r) => currentRoute.startsWith(r))
+  );
+
+  const isActive = (pattern: string) => {
+    if (pattern === 'dashboard') return currentRoute === 'dashboard';
+    return currentRoute.startsWith(pattern);
+  };
 
   const allNav = useMemo(() => [
-    { name: 'Dashboard', href: route('dashboard'), icon: '◻', permission: null as string | null },
-    { name: 'Ventas', href: route('ventas.index'), icon: '🛒', permission: 'ventas.ver' },
-    { name: 'Compras', href: route('compras.index'), icon: '📦', permission: 'compras.ver' },
-    { name: 'Clientes', href: route('clientes.index'), icon: '👥', permission: 'clientes.ver' },
-    { name: 'Productos', href: route('productos.index'), icon: '📦', permission: 'productos.ver' },
-    { name: 'Categorías', href: route('categoria_productos.index'), icon: '🏷️', permission: 'productos.ver' },
-    { name: 'Proveedores', href: route('proveedores.index'), icon: '🚚', permission: 'proveedores.ver' },
-    { name: 'Almacén', href: route('almacen.index'), icon: '🏭', permission: 'almacen.ver' },
-    { name: 'Reportes', href: route('reportes.index'), icon: '📊', permission: 'reportes.ver' },
+    { name: 'Dashboard', href: route('dashboard'), icon: '◻', pattern: 'dashboard', permission: null as string | null },
+    { name: 'Ventas', href: route('ventas.index'), icon: '🛒', pattern: 'ventas', permission: 'ventas.ver' },
+    { name: 'Compras', href: route('compras.index'), icon: '📦', pattern: 'compras', permission: 'compras.ver' },
+    { name: 'Clientes', href: route('clientes.index'), icon: '👥', pattern: 'clientes', permission: 'clientes.ver' },
+    { name: 'Productos', href: route('productos.index'), icon: '📦', pattern: 'productos', permission: 'productos.ver' },
+    { name: 'Categorías', href: route('categoria_productos.index'), icon: '🏷️', pattern: 'categoria_producto', permission: 'productos.ver' },
+    { name: 'Proveedores', href: route('proveedores.index'), icon: '🚚', pattern: 'proveedores', permission: 'proveedores.ver' },
+    { name: 'Almacén', href: route('almacen.index'), icon: '🏭', pattern: 'almacen', permission: 'almacen.ver' },
+    { name: 'Reportes', href: route('reportes.index'), icon: '📊', pattern: 'reportes', permission: 'reportes.ver' },
   ], []);
 
   const navigation = useMemo(
     () => allNav.filter((item) => !item.permission || can(item.permission)),
     [allNav, can],
   );
+
+  const navClass = (active: boolean, sub = false) =>
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+      active
+        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+    } ${sub ? 'py-2' : ''}`;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -120,27 +139,30 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
         lg:translate-x-0
       `}>
         <nav className="p-3 space-y-1">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={() => setMobileSidebarOpen(false)}
-              title={!sidebarOpen ? item.name : undefined}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
-            >
-              <span className="text-lg shrink-0">{item.icon}</span>
-              <span className={`overflow-hidden transition-all duration-200 ${sidebarOpen ? 'opacity-100 max-w-40' : 'opacity-0 max-w-0'}`}>
-                {item.name}
-              </span>
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const active = isActive(item.pattern);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={() => setMobileSidebarOpen(false)}
+                title={!sidebarOpen ? item.name : undefined}
+                className={navClass(active)}
+              >
+                <span className="text-lg shrink-0">{item.icon}</span>
+                <span className={`overflow-hidden transition-all duration-200 ${sidebarOpen ? 'opacity-100 max-w-40' : 'opacity-0 max-w-0'}`}>
+                  {item.name}
+                </span>
+              </Link>
+            );
+          })}
 
           {/* Admin submenu */}
           {can('usuarios.ver') && (sidebarOpen ? (
             <div>
               <button
                 onClick={() => setAdminOpen(!adminOpen)}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
+                className={navClass(isActive('admin.usuarios') || isActive('admin.roles'))}
               >
                 <span className="text-lg shrink-0">⚙</span>
                 <span className="flex items-center justify-between flex-1">
@@ -158,14 +180,14 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
                   <Link
                     href={route('admin.usuarios.index')}
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className={navClass(isActive('admin.usuarios'), true)}
                   >
                     👤 Usuarios
                   </Link>
                   <Link
                     href={route('admin.roles.index')}
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className={navClass(isActive('admin.roles'), true)}
                   >
                     🔐 Roles
                   </Link>
@@ -177,7 +199,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
               href={route('admin.usuarios.index')}
               onClick={() => setMobileSidebarOpen(false)}
               title="Admin"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
+              className={navClass(isActive('admin.usuarios') || isActive('admin.roles'))}
             >
               <span className="text-lg shrink-0">⚙</span>
             </Link>
@@ -188,7 +210,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
             <div>
               <button
                 onClick={() => setConfigOpen(!configOpen)}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
+                className={navClass(isActive('admin.correlativos') || isActive('admin.qr'))}
               >
                 <span className="text-lg shrink-0">⚙</span>
                 <span className="flex items-center justify-between flex-1">
@@ -206,14 +228,14 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
                   <Link
                     href={route('admin.correlativos.index')}
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className={navClass(isActive('admin.correlativos'), true)}
                   >
                     🔢 Correlativos
                   </Link>
                   <Link
                     href={route('admin.qr.index')}
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className={navClass(isActive('admin.qr'), true)}
                   >
                     📱 QR
                   </Link>
@@ -225,7 +247,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
               href={route('admin.correlativos.index')}
               onClick={() => setMobileSidebarOpen(false)}
               title="Configuración"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap"
+              className={navClass(isActive('admin.correlativos') || isActive('admin.qr'))}
             >
               <span className="text-lg shrink-0">⚙</span>
             </Link>

@@ -3,6 +3,7 @@ import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Link, useForm } from '@inertiajs/react';
+import { getReturnUrl } from '@/lib/navigation';
 import { useRef, useState } from 'react';
 
 interface Props {
@@ -17,7 +18,7 @@ export default function Form({ categoria_producto, return_url }: Props) {
     nombre: categoria_producto?.nombre ?? '',
     descripcion: categoria_producto?.descripcion ?? '',
     imagen: categoria_producto?.imagen ?? '',
-    return_url: return_url ?? '',
+    return_url: return_url ?? getReturnUrl(route('categoria_productos.index')),
   });
 
   const [preview, setPreview] = useState<string | null>(
@@ -78,8 +79,7 @@ export default function Form({ categoria_producto, return_url }: Props) {
     <form onSubmit={submit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <InputLabel htmlFor="nombre" value="Nombre" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="nombre" value="Nombre" required />
           <TextInput
             id="nombre"
             type="text"
@@ -91,7 +91,7 @@ export default function Form({ categoria_producto, return_url }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="imagen" value="Imagen" />
+          <InputLabel htmlFor="imagen" value="Imagen" optional />
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -132,7 +132,7 @@ export default function Form({ categoria_producto, return_url }: Props) {
         </div>
 
         <div className="md:col-span-2">
-          <InputLabel htmlFor="descripcion" value="Descripción" />
+          <InputLabel htmlFor="descripcion" value="Descripción" optional />
           <textarea
             id="descripcion"
             value={data.descripcion}

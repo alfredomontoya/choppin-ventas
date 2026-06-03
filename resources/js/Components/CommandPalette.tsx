@@ -1,5 +1,6 @@
 import { usePage, router } from '@inertiajs/react';
 import { usePermission } from '@/hooks/usePermission';
+import { saveReturnUrl } from '@/lib/navigation';
 import { useEffect, useRef, useState, useMemo } from 'react';
 
 interface Command {
@@ -20,10 +21,10 @@ const allCommands: Command[] = [
   { category: 'Páginas', name: 'Categorías', icon: '🏷️', route: 'categoria_productos.index', permission: 'productos.ver' },
   { category: 'Páginas', name: 'Proveedores', icon: '🚚', route: 'proveedores.index', permission: 'proveedores.ver' },
   { category: 'Páginas', name: 'Almacén', icon: '🏭', route: 'almacen.index', permission: 'almacen.ver' },
-  { category: 'Acciones', name: 'Nueva Venta', icon: '➕', route: 'ventas.create', routeParams: { return_url: typeof window !== 'undefined' ? window.location.href : '/' }, permission: 'ventas.crear' },
+  { category: 'Acciones', name: 'Nueva Venta', icon: '➕', route: 'ventas.create', permission: 'ventas.crear' },
   { category: 'Acciones', name: 'Nuevo Producto', icon: '➕', route: 'productos.create', permission: 'productos.crear' },
   { category: 'Acciones', name: 'Nuevo Cliente', icon: '➕', route: 'clientes.create', permission: 'clientes.crear' },
-  { category: 'Acciones', name: 'Nueva Compra', icon: '➕', route: 'compras.create', routeParams: { return_url: typeof window !== 'undefined' ? window.location.href : '/' }, permission: 'compras.crear' },
+  { category: 'Acciones', name: 'Nueva Compra', icon: '➕', route: 'compras.create', permission: 'compras.crear' },
   { category: 'Acciones', name: 'Nuevo Proveedor', icon: '➕', route: 'proveedores.create', permission: 'proveedores.crear' },
   { category: 'Acciones', name: 'Nuevo Movimiento', icon: '➕', route: 'almacen.create', permission: 'almacen.crear' },
   { category: 'Reportes', name: 'Reporte de Ventas', icon: '📊', route: 'reportes.ventas', permission: 'reportes.ver' },
@@ -97,6 +98,8 @@ export default function CommandPalette() {
   const navigate = (cmd: Command) => {
     setOpen(false);
     setQuery('');
+    const isCreate = cmd.route.endsWith('.create');
+    if (isCreate) saveReturnUrl();
     router.get(route(cmd.route as any, cmd.routeParams));
   };
 

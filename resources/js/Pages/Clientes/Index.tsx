@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { saveReturnUrl } from '@/lib/navigation';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { Pagination } from '@/Components/ui/Pagination';
@@ -10,7 +11,7 @@ import HighlightText from '@/Components/ui/HighlightText';
 
 const columnas = [
   { key: 'nombre', label: 'Nombre' },
-  { key: 'apellido', label: 'Apellido' },
+
   { key: 'tipo_documento', label: 'Tipo Doc.', render: (c: any) => c.tipo_documento.toUpperCase() },
   { key: 'numero_documento', label: 'N° Documento' },
   { key: 'telefono', label: 'Teléfono', render: (c: any) => c.telefono ?? '—' },
@@ -95,7 +96,8 @@ export default function Index({ clientes, filtros }: { clientes: any; filtros: a
             </p>
           </div>
           <Link
-            href={route('clientes.create', { return_url: window.location.href })}
+            href={route('clientes.create')}
+            onClick={() => saveReturnUrl()}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
           >
             + Nuevo Cliente
@@ -107,7 +109,7 @@ export default function Index({ clientes, filtros }: { clientes: any; filtros: a
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <input
                 type="text"
-                placeholder="Buscar por nombre, apellido, documento, teléfono o email..."
+                placeholder="Buscar por nombre, documento, teléfono o email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -178,7 +180,7 @@ export default function Index({ clientes, filtros }: { clientes: any; filtros: a
                       ))}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={route('clientes.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
+                          <Link href={route('clientes.show', item.id)} onClick={() => saveReturnUrl()} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
                             👁
                           </Link>
                           <Link href={route('clientes.edit', item.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Editar">

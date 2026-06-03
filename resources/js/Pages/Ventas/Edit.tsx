@@ -3,7 +3,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import Form from './Form';
 
-export default function Edit({ venta, return_url, clientes }: { venta: any; return_url?: string; clientes: { id: number; nombre: string; apellido: string; tipo_documento: string; numero_documento: string }[] }) {
+export default function Edit({ venta, return_url, clientes }: { venta: any; return_url?: string; clientes: { id: number; nombre: string; tipo_documento: string; numero_documento: string }[] }) {
   return (
     <>
       <Head title="Editar Venta" />

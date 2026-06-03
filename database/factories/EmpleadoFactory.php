@@ -18,7 +18,7 @@ class EmpleadoFactory extends Factory
             'user_id' => User::factory(),
             'nombre' => fake()->firstName(),
             'apellido' => fake()->lastName(),
-            'tipo_documento' => 'dni',
+            'tipo_documento' => 'ci',
             'numero_documento' => fake()->unique()->numerify('########'),
             'telefono' => fake()->phoneNumber(),
             'email' => fake()->email(),

@@ -71,7 +71,7 @@
 
   @if($venta->cliente)
   <div class="cliente">
-    <p><strong>Cliente:</strong> {{ $venta->cliente->nombre }} {{ $venta->cliente->apellido }}</p>
+    <p><strong>Cliente:</strong> {{ $venta->cliente->nombre }}</p>
     @if($venta->cliente->tipo_documento && $venta->cliente->numero_documento)
       <p><strong>{{ strtoupper($venta->cliente->tipo_documento) }}:</strong> {{ $venta->cliente->numero_documento }}</p>
     @endif

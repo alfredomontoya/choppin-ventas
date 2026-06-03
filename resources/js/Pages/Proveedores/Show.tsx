@@ -2,10 +2,11 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
+import { getReturnUrl, saveReturnUrl } from '@/lib/navigation';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 
-export default function Show({ proveedor, url_anterior }: { proveedor: any; url_anterior?: string }) {
+export default function Show({ proveedor }: { proveedor: any }) {
   const { flash } = usePage().props as any;
   const [showDelete, setShowDelete] = useState(false);
 
@@ -45,22 +46,24 @@ export default function Show({ proveedor, url_anterior }: { proveedor: any; url_
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={route('proveedores.create', { return_url: url_anterior ?? undefined })}
-              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
-            >
-              + Nuevo Proveedor
-            </Link>
-            <Link
-              href={url_anterior ?? route('proveedores.index')}
+              href={getReturnUrl(route('proveedores.index'))}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Aceptar
             </Link>
             <Link
-              href={route('proveedores.edit', [proveedor.id, { return_url: url_anterior ?? undefined }])}
+              href={route('proveedores.edit', proveedor.id)}
+              onClick={() => saveReturnUrl()}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"
             >
               Editar
+            </Link>
+            <Link
+              href={route('proveedores.create')}
+              onClick={() => saveReturnUrl()}
+              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
+            >
+              + Nuevo Proveedor
             </Link>
             <button
               onClick={() => setShowDelete(true)}

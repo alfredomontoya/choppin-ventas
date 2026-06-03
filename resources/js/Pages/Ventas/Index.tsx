@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { saveReturnUrl } from '@/lib/navigation';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { Pagination } from '@/Components/ui/Pagination';
@@ -11,7 +12,7 @@ import HighlightText from '@/Components/ui/HighlightText';
 const columnas = [
   { key: 'numero_comprobante', label: 'Comprobante' },
   { key: 'tipo_comprobante', label: 'Tipo', render: (v: any) => v.tipo_comprobante === 'boleta' ? 'Boleta' : 'Factura' },
-  { key: 'cliente', label: 'Cliente', render: (v: any) => v.cliente ? `${v.cliente.nombre} ${v.cliente.apellido}` : '—' },
+  { key: 'cliente', label: 'Cliente', render: (v: any) => v.cliente ? v.cliente.nombre : '—' },
   { key: 'fecha_emision', label: 'Fecha', render: (v: any) => new Date(v.fecha_emision).toLocaleDateString('es-BO') },
   { key: 'total', label: 'Total', render: (v: any) => `Bs ${Number(v.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
   { key: 'tipo_pago', label: 'Pago', render: (v: any) => v.tipo_pago.charAt(0).toUpperCase() + v.tipo_pago.slice(1) },
@@ -101,7 +102,8 @@ export default function Index({ ventas, filtros }: { ventas: any; filtros: any }
             </p>
           </div>
           <Link
-            href={route('ventas.create', { return_url: window.location.href })}
+            href={route('ventas.create')}
+            onClick={() => saveReturnUrl()}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
           >
             + Nueva Venta
@@ -194,7 +196,7 @@ export default function Index({ ventas, filtros }: { ventas: any; filtros: any }
                       ))}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Link href={route('ventas.show', [item.id, { url_anterior: window.location.href }])} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
+                          <Link href={route('ventas.show', item.id)} onClick={() => saveReturnUrl()} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Ver">
                             👁
                           </Link>
                           {item.estado === 'completado' && (

@@ -1,13 +1,14 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
+import { getReturnUrl, saveReturnUrl } from '@/lib/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 const initials = (name: string) => name.slice(0, 2).toUpperCase();
 const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-purple-500', 'bg-teal-500', 'bg-pink-500'];
 
-export default function Show({ producto, url_anterior, esAdmin }: { producto: any; url_anterior?: string; esAdmin?: boolean }) {
+export default function Show({ producto, esAdmin }: { producto: any; esAdmin?: boolean }) {
   const { flash } = usePage().props as any;
   const [lightbox, setLightbox] = useState<string | null>(null);
 
@@ -25,7 +26,7 @@ export default function Show({ producto, url_anterior, esAdmin }: { producto: an
   }, []);
 
   const goBack = () => {
-    router.visit(url_anterior || route('productos.index'));
+    router.visit(getReturnUrl(route('productos.index')));
   };
 
   const vigente = (() => {
@@ -56,10 +57,7 @@ export default function Show({ producto, url_anterior, esAdmin }: { producto: an
   ];
 
   const fallbackColor = colors[(producto.nombre || '').length % colors.length];
-  const allImages = [
-    ...(producto.imagen ? [producto.imagen] : []),
-    ...(producto.imagenes || []).map((img: any) => img.ruta),
-  ];
+  const allImages = (producto.imagenes || []).map((img: any, i: number) => ({ ruta: img.ruta, esPrincipal: i === 0 }));
 
   return (
     <>
@@ -71,24 +69,26 @@ export default function Show({ producto, url_anterior, esAdmin }: { producto: an
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Detalles del producto</p>
           </div>
           <div className="flex gap-2">
-            <Link
-              href={route('productos.create', { return_url: url_anterior ?? undefined })}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
-            >
-              + Nuevo Producto
-            </Link>
-            <Link
-              href={route('productos.edit', [producto.id, { return_url: url_anterior ?? undefined }])}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
-            >
-              Editar
-            </Link>
             <button
               onClick={goBack}
               className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Volver
             </button>
+            <Link
+              href={route('productos.edit', producto.id)}
+              onClick={() => saveReturnUrl()}
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
+            >
+              Editar
+            </Link>
+            <Link
+              href={route('productos.create')}
+              onClick={() => saveReturnUrl()}
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+            >
+              + Nuevo Producto
+            </Link>
           </div>
         </div>
 
@@ -102,18 +102,23 @@ export default function Show({ producto, url_anterior, esAdmin }: { producto: an
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {allImages.map((src: string, i: number) => (
+                  {allImages.map((img: { ruta: string; esPrincipal: boolean }, i: number) => (
                     <div
                       key={i}
                       className="relative group cursor-pointer overflow-hidden rounded-lg"
-                      onClick={() => setLightbox(src)}
+                      onClick={() => setLightbox(img.ruta)}
                     >
                       <img
-                        src={src}
+                        src={img.ruta}
                         alt={`${producto.nombre} ${i + 1}`}
                         className="w-full aspect-square object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                      {img.esPrincipal && (
+                        <span className="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow">
+                          Principal
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>

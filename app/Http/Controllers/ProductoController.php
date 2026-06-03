@@ -35,10 +35,9 @@ class ProductoController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
         return inertia('Productos/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
             'categorias' => CategoriaProducto::where('activo', true)->orderBy('nombre')->get(),
         ]);
     }
@@ -48,46 +47,36 @@ class ProductoController extends Controller
         $data = $request->validated();
         $producto = $this->service->crear($data);
 
-        return redirect()->route('productos.show', [
-            'producto' => $producto,
-            'url_anterior' => $request->input('return_url') ?: route('productos.index'),
-        ])->with('success', 'Producto creado correctamente.');
+        return redirect()->route('productos.show', $producto->id)
+            ->with('success', 'Producto creado correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id, Request $request): \Inertia\Response
     {
         return inertia('Productos/Show', [
             'producto' => $this->rutasAUrl($this->service->obtenerPorId($id)),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('productos.index'),
             'esAdmin' => $request->user()?->hasRole('Administrador') ?? false,
         ]);
     }
 
     public function update(UpdateProductoRequest $request, int $id)
     {
-        $data = $request->validated();
-        $producto = $this->service->actualizar($id, $data);
+        $this->service->actualizar($id, $request->validated());
 
-        return redirect()->route('productos.show', [
-            'producto' => $id,
-            'url_anterior' => $request->input('return_url') ?: route('productos.index'),
-        ])->with('success', 'Producto actualizado correctamente.');
+        return redirect()->route('productos.show', $id)
+            ->with('success', 'Producto actualizado correctamente.');
     }
 
-    public function edit(int $id, Request $request)
+    public function edit(int $id): \Inertia\Response
     {
         return inertia('Productos/Edit', [
             'producto' => $this->rutasAUrl($this->service->obtenerPorId($id)),
-            'return_url' => $request->query('return_url') ?: url()->previous(),
             'categorias' => CategoriaProducto::where('activo', true)->orderBy('nombre')->get(),
         ]);
     }
 
     private function rutasAUrl(Producto $producto): Producto
     {
-        if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
-            $producto->imagen = Storage::url($producto->imagen);
-        }
         foreach ($producto->imagenes ?? [] as $img) {
             if ($img->ruta && ! str_starts_with($img->ruta, 'http')) {
                 $img->ruta = Storage::url($img->ruta);

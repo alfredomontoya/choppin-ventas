@@ -1,4 +1,5 @@
 import InputLabel from '@/Components/InputLabel';
+import PasswordInput from '@/Components/PasswordInput';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -46,8 +47,7 @@ export default function UserForm({ usuario, roles, userRoles }: Props) {
     <form onSubmit={submit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <InputLabel htmlFor="name" value="Nombre" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="name" value="Nombre" required />
           <TextInput
             id="name"
             type="text"
@@ -59,8 +59,7 @@ export default function UserForm({ usuario, roles, userRoles }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="email" value="Email" />
-          <span className="text-red-500 ml-1">*</span>
+          <InputLabel htmlFor="email" value="Email" required />
           <TextInput
             id="email"
             type="email"
@@ -72,11 +71,9 @@ export default function UserForm({ usuario, roles, userRoles }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="password" value={isEdit ? 'Contraseña (dejar vacío para no cambiar)' : 'Contraseña'} />
-          <span className="text-red-500 ml-1">{isEdit ? '' : '*'}</span>
-          <TextInput
+          <InputLabel htmlFor="password" value={isEdit ? 'Contraseña (dejar vacío para no cambiar)' : 'Contraseña'} required={!isEdit} />
+          <PasswordInput
             id="password"
-            type="password"
             value={data.password}
             onChange={(e) => setData('password', e.target.value)}
             className="mt-1.5 block w-full"
@@ -86,9 +83,8 @@ export default function UserForm({ usuario, roles, userRoles }: Props) {
 
         <div>
           <InputLabel htmlFor="password_confirmation" value="Confirmar Contraseña" />
-          <TextInput
+          <PasswordInput
             id="password_confirmation"
-            type="password"
             value={data.password_confirmation}
             onChange={(e) => setData('password_confirmation', e.target.value)}
             className="mt-1.5 block w-full"

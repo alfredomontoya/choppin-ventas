@@ -5,13 +5,14 @@ import Autocomplete from '@/Components/ui/Autocomplete';
 import FavoritosGrid from '@/Components/ui/FavoritosGrid';
 import Modal from '@/Components/Modal';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { getReturnUrl } from '@/lib/navigation';
 import { useEffect, useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface ClienteOption {
   id: number;
   nombre: string;
-  apellido: string;
+
   tipo_documento: string;
   numero_documento: string;
 }
@@ -51,7 +52,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
       producto_id: d.producto_id,
       cantidad: Number(d.cantidad),
     })) ?? [] as { producto_id: number; cantidad: number }[],
-    return_url: return_url ?? '',
+    return_url: return_url ?? getReturnUrl(route('ventas.index')),
   });
 
   const getPrecioVenta = useCallback((producto: ProductoOption): number => {
@@ -218,7 +219,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                 <InputLabel htmlFor="cliente_autocomplete" value="Cliente" />
                 {clienteSeleccionado && (
                   <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-xs font-medium text-indigo-700 dark:text-indigo-300">
-                    {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                    {clienteSeleccionado.nombre}
                     <button
                       type="button"
                       onClick={() => setData('cliente_id', null)}
@@ -236,14 +237,14 @@ export default function Form({ venta, return_url, clientes, productos, productos
                   const q = query.toLowerCase();
                   return (
                     cliente.nombre.toLowerCase().includes(q) ||
-                    cliente.apellido.toLowerCase().includes(q) ||
+
                     cliente.numero_documento.toLowerCase().includes(q)
                   );
                 }}
                 renderItem={(cliente, highlighted) => (
                   <div className={`px-3 py-2 ${highlighted ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}>
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      {cliente.nombre} {cliente.apellido}
+                      {cliente.nombre}
                     </p>
                     <p className="text-xs text-slate-400">
                       {cliente.tipo_documento.toUpperCase()}: {cliente.numero_documento}
@@ -258,10 +259,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
 
             {/* Tipo Pago — Radio Buttons */}
             <div>
-              <div className="flex items-center gap-1">
-                <InputLabel value="Tipo de Pago" />
-                <span className="text-red-500 text-sm">*</span>
-              </div>
+              <InputLabel value="Tipo de Pago" required />
               <div className="mt-1.5 flex flex-wrap gap-3">
                 {[
                   { value: 'efectivo', label: 'Efectivo' },
@@ -447,7 +445,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
 
       {/* SECCIÓN 3: Observaciones */}
       <div>
-        <InputLabel htmlFor="observaciones" value="Observaciones" />
+                <InputLabel htmlFor="observaciones" value="Observaciones" optional />
         <textarea
           id="observaciones"
           rows={3}
@@ -538,7 +536,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
                 {clienteSeleccionado && (
                   <div className="text-sm text-slate-600 dark:text-slate-400">
                     Cliente: <span className="font-medium text-slate-800 dark:text-slate-200">
-                      {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                      {clienteSeleccionado.nombre}
                     </span>
                   </div>
                 )}

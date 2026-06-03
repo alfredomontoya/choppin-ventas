@@ -2,10 +2,11 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { ConfirmDialog } from '@/Components/ui/ConfirmDialog';
+import { getReturnUrl, saveReturnUrl } from '@/lib/navigation';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 
-export default function Show({ categoria_producto, url_anterior }: { categoria_producto: any; url_anterior?: string }) {
+export default function Show({ categoria_producto }: { categoria_producto: any }) {
   const { flash } = usePage().props as any;
   const [showDelete, setShowDelete] = useState(false);
 
@@ -47,22 +48,24 @@ export default function Show({ categoria_producto, url_anterior }: { categoria_p
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={route('categoria_productos.create', { return_url: url_anterior ?? undefined })}
-              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
-            >
-              + Nueva Categoría
-            </Link>
-            <Link
-              href={url_anterior ?? route('categoria_productos.index')}
+              href={getReturnUrl(route('categoria_productos.index'))}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Aceptar
             </Link>
             <Link
-              href={route('categoria_productos.edit', [categoria_producto.id, { return_url: url_anterior ?? undefined }])}
+              href={route('categoria_productos.edit', categoria_producto.id)}
+              onClick={() => saveReturnUrl()}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-indigo-600 text-white text-xs md:text-sm hover:bg-indigo-700 transition-colors"
             >
               Editar
+            </Link>
+            <Link
+              href={route('categoria_productos.create')}
+              onClick={() => saveReturnUrl()}
+              className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-emerald-600 text-white text-xs md:text-sm hover:bg-emerald-700 transition-colors"
+            >
+              + Nueva Categoría
             </Link>
             <button
               onClick={() => setShowDelete(true)}

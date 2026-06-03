@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { saveReturnUrl } from '@/lib/navigation';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
 import { Pagination } from '@/Components/ui/Pagination';
@@ -139,7 +140,8 @@ export default function Index({ movimientos, filtros }: { movimientos: any; filt
             </p>
           </div>
           <Link
-            href={route('almacen.create', { return_url: window.location.href })}
+            href={route('almacen.create')}
+            onClick={() => saveReturnUrl()}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
           >
             + Nuevo Movimiento
@@ -252,7 +254,8 @@ export default function Index({ movimientos, filtros }: { movimientos: any; filt
                       ))}
                       <td className="px-4 py-3 text-right">
                         <Link
-                          href={route('almacen.show', [item.id, { url_anterior: window.location.href }])}
+                          onClick={() => saveReturnUrl()}
+                          href={route('almacen.show', item.id)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                           title="Ver"
                         >

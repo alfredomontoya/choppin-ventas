@@ -30,46 +30,38 @@ class CategoriaProductoController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
-        return inertia('CategoriaProductos/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
-        ]);
+        return inertia('CategoriaProductos/Create');
     }
 
     public function store(StoreCategoriaProductoRequest $request)
     {
         $categoria = $this->service->crear($request->validated());
 
-        return redirect()->route('categoria_productos.show', [
-            'categoria_producto' => $categoria,
-            'url_anterior' => $request->input('return_url') ?: route('categoria_productos.index'),
-        ])->with('success', 'Categoría creada correctamente.');
+        return redirect()->route('categoria_productos.show', $categoria->id)
+            ->with('success', 'Categoría creada correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id): \Inertia\Response
     {
         return inertia('CategoriaProductos/Show', [
             'categoria_producto' => $this->imagenAUrl($this->service->obtenerPorId($id)),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('categoria_productos.index'),
         ]);
     }
 
     public function update(UpdateCategoriaProductoRequest $request, int $id)
     {
-        $categoria = $this->service->actualizar($id, $request->validated());
+        $this->service->actualizar($id, $request->validated());
 
-        return redirect()->route('categoria_productos.show', [
-            'categoria_producto' => $id,
-            'url_anterior' => $request->input('return_url') ?: route('categoria_productos.index'),
-        ])->with('success', 'Categoría actualizada correctamente.');
+        return redirect()->route('categoria_productos.show', $id)
+            ->with('success', 'Categoría actualizada correctamente.');
     }
 
-    public function edit(int $id, Request $request)
+    public function edit(int $id): \Inertia\Response
     {
         return inertia('CategoriaProductos/Edit', [
             'categoria_producto' => $this->imagenAUrl($this->service->obtenerPorId($id)),
-            'return_url' => $request->query('return_url') ?: url()->previous(),
         ]);
     }
 

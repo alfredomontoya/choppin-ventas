@@ -287,7 +287,7 @@ class ReporteService
             ->selectRaw('
                 clientes.id,
                 clientes.nombre,
-                clientes.apellido,
+                clientes.nombre,
                 clientes.tipo_documento,
                 clientes.numero_documento,
                 clientes.telefono,
@@ -310,7 +310,7 @@ class ReporteService
         $query->groupBy(
             'clientes.id',
             'clientes.nombre',
-            'clientes.apellido',
+            'clientes.nombre',
             'clientes.tipo_documento',
             'clientes.numero_documento',
             'clientes.telefono',
@@ -320,7 +320,7 @@ class ReporteService
         $search = $request->input('busqueda');
         if ($search) {
             $query->having('clientes.nombre', 'like', "%{$search}%")
-                ->orHaving('clientes.apellido', 'like', "%{$search}%")
+                ->orHaving('clientes.nombre', 'like', "%{$search}%")
                 ->orHaving('clientes.numero_documento', 'like', "%{$search}%");
         }
 
@@ -337,7 +337,7 @@ class ReporteService
         $items = $items->map(function ($item) {
             return [
                 'id' => $item->id,
-                'nombre_completo' => trim("{$item->nombre} {$item->apellido}"),
+                'nombre_completo' => $item->nombre,
                 'tipo_documento' => $item->tipo_documento,
                 'numero_documento' => $item->numero_documento,
                 'telefono' => $item->telefono,

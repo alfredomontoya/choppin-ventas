@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
+import { getReturnUrl } from '@/lib/navigation';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 
@@ -9,7 +10,7 @@ const currency = (n: number) => {
   return `Bs ${Number(n).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-export default function Show({ venta, url_anterior }: { venta: any; url_anterior?: string }) {
+export default function Show({ venta }: { venta: any }) {
   const { flash } = usePage().props as any;
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
     { label: 'N° Comprobante', value: venta.numero_comprobante },
     { label: 'Tipo', value: venta.tipo_comprobante === 'boleta' ? 'Boleta' : 'Factura' },
     { label: 'Fecha de Emisión', value: new Date(venta.fecha_emision).toLocaleString('es-BO') },
-    { label: 'Cliente', value: venta.cliente ? `${venta.cliente.nombre} ${venta.cliente.apellido}` : '—' },
+    { label: 'Cliente', value: venta.cliente ? venta.cliente.nombre : '—' },
     { label: 'Documento Cliente', value: venta.cliente?.numero_documento ?? '—' },
     { label: 'Tipo de Pago', value: venta.tipo_pago.charAt(0).toUpperCase() + venta.tipo_pago.slice(1) },
     { label: 'Estado', value: venta.estado === 'completado' ? 'Completado' : 'Anulado' },
@@ -48,7 +49,7 @@ export default function Show({ venta, url_anterior }: { venta: any; url_anterior
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={url_anterior ?? route('ventas.index')}
+              href={getReturnUrl(route('ventas.index'))}
               className="shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs md:text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Volver

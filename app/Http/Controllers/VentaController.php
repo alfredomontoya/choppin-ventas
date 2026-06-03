@@ -29,7 +29,7 @@ class VentaController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
         /** @var User $user */
         $user = auth()->user();
@@ -37,23 +37,20 @@ class VentaController extends Controller
         $qrPath = config('ventas.qr.image_path');
 
         return inertia('Ventas/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
-            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'tipo_documento', 'numero_documento']),
-            'productos' => Producto::with(['categoria', 'precios'])
+            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'tipo_documento', 'numero_documento']),
+            'productos' => Producto::with(['categoria', 'imagenes', 'precios'])
                 ->where('activo', true)
                 ->orderBy('nombre')
                 ->limit(200)
                 ->get()
                 ->map(function (Producto $producto) {
-                    if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
-                        $producto->imagen = Storage::url($producto->imagen);
-                    }
+                    $firstImage = $producto->imagenes->first();
+                    $producto->imagen = $firstImage ? Storage::url($firstImage->ruta) : null;
                     return $producto;
                 }),
-            'productosFavoritos' => $user->productosFavoritos->map(function (Producto $producto) {
-                if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
-                    $producto->imagen = Storage::url($producto->imagen);
-                }
+            'productosFavoritos' => $user->productosFavoritos->load('imagenes')->map(function (Producto $producto) {
+                $firstImage = $producto->imagenes->first();
+                $producto->imagen = $firstImage ? Storage::url($firstImage->ruta) : null;
                 return $producto;
             }),
             'qrImage' => $qrPath,
@@ -74,17 +71,14 @@ class VentaController extends Controller
             observaciones: $data['observaciones'] ?? null,
         );
 
-        return redirect()->route('ventas.show', [
-            'venta' => $venta,
-            'url_anterior' => $request->input('return_url') ?: route('ventas.index'),
-        ])->with('success', 'Venta creada correctamente.');
+        return redirect()->route('ventas.show', $venta->id)
+            ->with('success', 'Venta creada correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id): \Inertia\Response
     {
         return inertia('Ventas/Show', [
             'venta' => $this->service->obtenerPorId($id),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('ventas.index'),
         ]);
     }
 
@@ -92,18 +86,15 @@ class VentaController extends Controller
     {
         $this->service->actualizar($id, $request->validated());
 
-        return redirect()->route('ventas.show', [
-            'venta' => $id,
-            'url_anterior' => $request->input('return_url') ?: route('ventas.index'),
-        ])->with('success', 'Venta actualizada correctamente.');
+        return redirect()->route('ventas.show', $id)
+            ->with('success', 'Venta actualizada correctamente.');
     }
 
-    public function edit(int $id, Request $request)
+    public function edit(int $id): \Inertia\Response
     {
         return inertia('Ventas/Edit', [
             'venta' => $this->service->obtenerPorId($id),
-            'return_url' => $request->query('return_url') ?: url()->previous(),
-            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'apellido', 'tipo_documento', 'numero_documento']),
+            'clientes' => Cliente::orderBy('nombre')->get(['id', 'nombre', 'tipo_documento', 'numero_documento']),
         ]);
     }
 

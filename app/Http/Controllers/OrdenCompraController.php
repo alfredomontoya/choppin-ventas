@@ -12,6 +12,7 @@ use App\Models\Proveedor;
 use App\Services\OrdenCompraService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class OrdenCompraController extends Controller
@@ -28,7 +29,7 @@ class OrdenCompraController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
         $productos = Producto::with(['categoria', 'imagenes', 'precios'])
             ->where('activo', true)
@@ -36,12 +37,12 @@ class OrdenCompraController extends Controller
             ->get()
             ->map(fn (Producto $p) => [
                 ...$p->toArray(),
+                'imagen' => $p->imagenes->first()?->ruta ? Storage::url($p->imagenes->first()->ruta) : null,
                 'precio_venta' => $p->precio_venta,
                 'margen_utilidad' => (float) ($p->margen_utilidad ?? 30),
             ]);
 
         return inertia('Compras/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
             'proveedores' => Proveedor::orderBy('nombre')->get(['id', 'nombre', 'contacto', 'nit_ci']),
             'productos' => $productos,
         ]);
@@ -57,21 +58,18 @@ class OrdenCompraController extends Controller
             observaciones: $data['observaciones'] ?? null,
         );
 
-        return redirect()->route('compras.show', [
-            'compra' => $orden,
-            'url_anterior' => $request->input('return_url') ?: route('compras.index'),
-        ])->with('success', 'Orden de compra creada correctamente.');
+        return redirect()->route('compras.show', $orden->id)
+            ->with('success', 'Orden de compra creada correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id): \Inertia\Response
     {
         return inertia('Compras/Show', [
             'orden' => $this->service->obtenerPorId($id),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('compras.index'),
         ]);
     }
 
-    public function edit(int $id, Request $request)
+    public function edit(int $id): \Inertia\Response
     {
         $orden = $this->service->obtenerPorId($id);
 
@@ -81,13 +79,13 @@ class OrdenCompraController extends Controller
             ->get()
             ->map(fn (Producto $p) => [
                 ...$p->toArray(),
+                'imagen' => $p->imagenes->first()?->ruta ? Storage::url($p->imagenes->first()->ruta) : null,
                 'precio_venta' => $p->precio_venta,
                 'margen_utilidad' => (float) ($p->margen_utilidad ?? 30),
             ]);
 
         return inertia('Compras/Edit', [
             'orden' => $orden,
-            'return_url' => $request->query('return_url') ?: url()->previous(),
             'proveedores' => Proveedor::orderBy('nombre')->get(['id', 'nombre', 'contacto', 'nit_ci']),
             'productos' => $productos,
         ]);
@@ -97,10 +95,8 @@ class OrdenCompraController extends Controller
     {
         $this->service->actualizar($id, $request->validated());
 
-        return redirect()->route('compras.show', [
-            'compra' => $id,
-            'url_anterior' => $request->input('return_url') ?: route('compras.index'),
-        ])->with('success', 'Orden de compra actualizada correctamente.');
+        return redirect()->route('compras.show', $id)
+            ->with('success', 'Orden de compra actualizada correctamente.');
     }
 
     public function destroy(int $id)

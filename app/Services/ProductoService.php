@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Models\Producto;
 use App\Models\ProductoImagen;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class ProductoService
@@ -43,13 +42,10 @@ class ProductoService
         $precioVenta = $data['precio_venta'] ?? null;
         unset($data['imagenes_nuevas'], $data['imagenes_eliminar'], $data['imagenes_orden'], $data['precio_compra'], $data['precio_venta']);
 
-        if (isset($data['imagen']) && $data['imagen'] instanceof UploadedFile) {
-            $data['imagen'] = $this->comprimirYGuardar($data['imagen']);
-        }
-
         $producto = Producto::create($data);
 
-        $this->guardarImagenesMultiples($producto, $imagenesNuevas);
+        $nuevosIds = $this->guardarImagenesMultiples($producto, $imagenesNuevas);
+        $this->aplicarOrdenCompleto($producto, array_fill(0, count($nuevosIds), 0), $nuevosIds);
 
         if ($precioCompra !== null && $precioVenta !== null) {
             $producto->precios()->create([
@@ -73,23 +69,9 @@ class ProductoService
         $precioVenta = $data['precio_venta'] ?? null;
         unset($data['imagenes_nuevas'], $data['imagenes_eliminar'], $data['imagenes_orden'], $data['precio_compra'], $data['precio_venta']);
 
-        if (isset($data['imagen']) && $data['imagen'] instanceof UploadedFile) {
-            if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
-                Storage::disk('public')->delete($producto->imagen);
-            }
-            $data['imagen'] = $this->comprimirYGuardar($data['imagen']);
-        } elseif (isset($data['imagen']) && $data['imagen'] === '') {
-            if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
-                Storage::disk('public')->delete($producto->imagen);
-            }
-            $data['imagen'] = null;
-        } elseif (isset($data['imagen']) && is_string($data['imagen']) && $data['imagen'] !== '') {
-            $data['imagen'] = $this->normalizarRuta($data['imagen']);
-        }
-
         $this->eliminarImagenes($producto, $imagenesEliminar);
-        $this->actualizarOrden($producto, $imagenesOrden);
-        $this->guardarImagenesMultiples($producto, $imagenesNuevas);
+        $nuevosIds = $this->guardarImagenesMultiples($producto, $imagenesNuevas);
+        $this->aplicarOrdenCompleto($producto, $imagenesOrden, $nuevosIds);
 
         $producto->update($data);
 
@@ -98,6 +80,23 @@ class ProductoService
         }
 
         return $producto->fresh(['imagenes', 'precios']);
+    }
+
+    private function aplicarOrdenCompleto(Producto $producto, array $orden, array $nuevosIds): void
+    {
+        $idxNuevo = 0;
+        foreach ($orden as $pos => $item) {
+            if ($item === 0) {
+                $id = $nuevosIds[$idxNuevo] ?? null;
+                if ($id) {
+                    ProductoImagen::where('id', $id)->update(['orden' => $pos + 1]);
+                    $idxNuevo++;
+                }
+            } else {
+                ProductoImagen::where('id', $item)->where('producto_id', $producto->id)
+                    ->update(['orden' => $pos + 1]);
+            }
+        }
     }
 
     private function actualizarPrecio(Producto $producto, float $precioCompra, float $precioVenta): void
@@ -126,10 +125,6 @@ class ProductoService
     {
         $producto = $this->obtenerPorId($id);
 
-        if ($producto->imagen && ! str_starts_with($producto->imagen, 'http')) {
-            Storage::disk('public')->delete($producto->imagen);
-        }
-
         foreach ($producto->imagenes as $img) {
             if (! str_starts_with($img->ruta, 'http')) {
                 Storage::disk('public')->delete($img->ruta);
@@ -151,21 +146,23 @@ class ProductoService
             ->when($request->filled('stock_hasta'), fn ($q) => $q->where('stock_actual', '<=', $request->stock_hasta));
     }
 
-    private function guardarImagenesMultiples(Producto $producto, array $files): void
+    private function guardarImagenesMultiples(Producto $producto, array $files): array
     {
-        $ultimoOrden = ProductoImagen::where('producto_id', $producto->id)->max('orden') ?? 0;
+        $ids = [];
 
         foreach ($files as $file) {
             if (! $file instanceof UploadedFile) {
                 continue;
             }
-            $ultimoOrden++;
             $ruta = $this->comprimirYGuardar($file);
-            $producto->imagenes()->create([
+            $imagen = $producto->imagenes()->create([
                 'ruta' => $ruta,
-                'orden' => $ultimoOrden,
+                'orden' => 0,
             ]);
+            $ids[] = $imagen->id;
         }
+
+        return $ids;
     }
 
     private function eliminarImagenes(Producto $producto, array $ids): void
@@ -179,14 +176,6 @@ class ProductoService
                 Storage::disk('public')->delete($img->ruta);
             }
             $img->delete();
-        }
-    }
-
-    private function actualizarOrden(Producto $producto, array $orden): void
-    {
-        foreach ($orden as $pos => $id) {
-            ProductoImagen::where('id', $id)->where('producto_id', $producto->id)
-                ->update(['orden' => $pos + 1]);
         }
     }
 
@@ -289,19 +278,6 @@ class ProductoService
         };
 
         return ob_get_clean();
-    }
-
-    private function normalizarRuta(string $ruta): string
-    {
-        $storageUrl = rtrim(Storage::url(''), '/') . '/';
-        if (str_starts_with($ruta, $storageUrl)) {
-            return substr($ruta, strlen($storageUrl));
-        }
-        if (str_starts_with($ruta, '/storage/')) {
-            return substr($ruta, strlen('/storage/'));
-        }
-
-        return $ruta;
     }
 
     private function pngToJpeg(\GdImage $gdImage): \GdImage

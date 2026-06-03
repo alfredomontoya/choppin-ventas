@@ -14,9 +14,8 @@ class ClienteFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre' => fake()->firstName(),
-            'apellido' => fake()->lastName(),
-            'tipo_documento' => fake()->randomElement(['dni', 'ce', 'ruc']),
+            'nombre' => fake()->firstName() . ' ' . fake()->lastName(),
+            'tipo_documento' => fake()->randomElement(['ci', 'ce', 'nit']),
             'numero_documento' => fake()->unique()->numerify('###########'),
             'telefono' => fake()->phoneNumber(),
             'email' => fake()->email(),

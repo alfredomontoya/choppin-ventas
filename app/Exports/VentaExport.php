@@ -47,7 +47,7 @@ class VentaExport implements FromQuery, WithHeadings, WithMapping
             $venta->numero_comprobante,
             ucfirst($venta->tipo_comprobante),
             $venta->fecha_emision->format('d/m/Y H:i'),
-            $venta->cliente ? "{$venta->cliente->nombre} {$venta->cliente->apellido}" : '—',
+            $venta->cliente ? $venta->cliente->nombre : '—',
             $venta->cliente?->numero_documento ?? '—',
             number_format((float) $venta->subtotal, 2),
             number_format((float) $venta->descuento, 2),

@@ -25,28 +25,23 @@ class ClienteController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
-        return inertia('Clientes/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
-        ]);
+        return inertia('Clientes/Create');
     }
 
     public function store(StoreClienteRequest $request)
     {
         $cliente = $this->service->crear($request->validated());
 
-        return redirect()->route('clientes.show', [
-            'cliente' => $cliente,
-            'url_anterior' => $request->input('return_url') ?: route('clientes.index'),
-        ])->with('success', 'Cliente creado correctamente.');
+        return redirect()->route('clientes.show', $cliente->id)
+            ->with('success', 'Cliente creado correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id): \Inertia\Response
     {
         return inertia('Clientes/Show', [
             'cliente' => $this->service->obtenerPorId($id),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('clientes.index'),
         ]);
     }
 
@@ -54,17 +49,14 @@ class ClienteController extends Controller
     {
         $this->service->actualizar($id, $request->validated());
 
-        return redirect()->route('clientes.show', [
-            'cliente' => $id,
-            'url_anterior' => $request->input('return_url') ?: route('clientes.index'),
-        ])->with('success', 'Cliente actualizado correctamente.');
+        return redirect()->route('clientes.show', $id)
+            ->with('success', 'Cliente actualizado correctamente.');
     }
 
-    public function edit(int $id, Request $request)
+    public function edit(int $id): \Inertia\Response
     {
         return inertia('Clientes/Edit', [
             'cliente' => $this->service->obtenerPorId($id),
-            'return_url' => $request->query('return_url') ?: url()->previous(),
         ]);
     }
 

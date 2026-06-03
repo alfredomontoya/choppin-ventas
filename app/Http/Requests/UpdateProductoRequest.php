@@ -30,16 +30,10 @@ class UpdateProductoRequest extends FormRequest
             'imagenes_eliminar' => ['nullable', 'array'],
             'imagenes_eliminar.*' => ['integer', 'exists:producto_imagenes,id'],
             'imagenes_orden' => ['nullable', 'array'],
-            'imagenes_orden.*' => ['integer', 'exists:producto_imagenes,id'],
+            'imagenes_orden.*' => ['integer', 'min:0'],
             'precio_compra' => ['required', 'numeric', 'min:0'],
             'precio_venta' => ['required', 'numeric', 'min:0'],
         ];
-
-        if ($this->hasFile('imagen')) {
-            $rules['imagen'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'dimensions:min_width=64,min_height=64,max_width=2000,max_height=2000'];
-        } else {
-            $rules['imagen'] = ['nullable', 'string', 'max:500'];
-        }
 
         return $rules;
     }
@@ -52,10 +46,6 @@ class UpdateProductoRequest extends FormRequest
             'codigo.required' => 'El código es obligatorio.',
             'codigo.unique' => 'Este código ya está registrado.',
             'nombre.required' => 'El nombre es obligatorio.',
-            'imagen.image' => 'El archivo debe ser una imagen.',
-            'imagen.mimes' => 'La imagen debe ser JPG, PNG o WebP.',
-            'imagen.dimensions' => 'La imagen debe medir entre 64×64 y 2000×2000 píxeles.',
-            'imagen.uploaded' => 'La imagen falló al subir.',
             'precio_compra.required' => 'El precio de compra es obligatorio.',
             'precio_compra.numeric' => 'El precio de compra debe ser un número.',
             'precio_compra.min' => 'El precio de compra no puede ser negativo.',

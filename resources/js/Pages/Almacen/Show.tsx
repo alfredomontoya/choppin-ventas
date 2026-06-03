@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card } from '@/Components/ui/Card';
+import { getReturnUrl, saveReturnUrl } from '@/lib/navigation';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
@@ -22,7 +23,7 @@ const tipoColor: Record<string, string> = {
   ajuste: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/20',
 };
 
-export default function Show({ movimiento, url_anterior }: { movimiento: any; url_anterior?: string }) {
+export default function Show({ movimiento }: { movimiento: any }) {
   const { flash } = usePage().props as any;
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function Show({ movimiento, url_anterior }: { movimiento: any; ur
   }, [flash]);
 
   const goBack = () => {
-    router.visit(url_anterior || route('almacen.index'));
+    router.visit(getReturnUrl(route('almacen.index')));
   };
 
   const fields = [
@@ -63,18 +64,19 @@ export default function Show({ movimiento, url_anterior }: { movimiento: any; ur
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Detalle del movimiento de almacén</p>
           </div>
           <div className="flex gap-2">
-            <Link
-              href={route('almacen.create', { return_url: url_anterior ?? undefined })}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
-            >
-              + Nuevo Movimiento
-            </Link>
             <button
               onClick={goBack}
               className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Volver
             </button>
+            <Link
+              href={route('almacen.create')}
+              onClick={() => saveReturnUrl()}
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+            >
+              + Nuevo Movimiento
+            </Link>
           </div>
         </div>
 

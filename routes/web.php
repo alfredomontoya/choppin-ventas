@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('almacen', AlmacenController::class)->only(['index', 'create', 'store', 'show'])->middleware('permission:almacen.ver');
 
     Route::get('notificaciones', [ReporteController::class, 'notificaciones'])->name('notificaciones')->middleware('auth');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 

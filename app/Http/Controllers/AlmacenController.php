@@ -27,10 +27,9 @@ class AlmacenController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(): \Inertia\Response
     {
         return inertia('Almacen/Create', [
-            'return_url' => $request->query('return_url') ?: url()->previous(),
             'productos' => Producto::where('activo', true)->orderBy('nombre')->get(['id', 'nombre', 'codigo']),
         ]);
     }
@@ -40,17 +39,14 @@ class AlmacenController extends Controller
         $data = $request->validated();
         $movimiento = $this->service->crear($data);
 
-        return redirect()->route('almacen.show', [
-            'almacen' => $movimiento,
-            'url_anterior' => $request->input('return_url') ?: route('almacen.index'),
-        ])->with('success', 'Movimiento registrado correctamente.');
+        return redirect()->route('almacen.show', $movimiento->id)
+            ->with('success', 'Movimiento registrado correctamente.');
     }
 
-    public function show(int $id, Request $request)
+    public function show(int $id): \Inertia\Response
     {
         return inertia('Almacen/Show', [
             'movimiento' => $this->service->obtenerPorId($id),
-            'url_anterior' => $request->query('url_anterior') ?: url()->previous() ?: route('almacen.index'),
         ]);
     }
 

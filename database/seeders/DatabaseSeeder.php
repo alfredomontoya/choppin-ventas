@@ -33,6 +33,8 @@ class DatabaseSeeder extends Seeder
             'role_has_permissions',
             'roles',
             'permissions',
+            'correlativo_resets',
+            'correlativos',
             'users',
         ];
 

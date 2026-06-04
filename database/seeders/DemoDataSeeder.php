@@ -54,6 +54,9 @@ class DemoDataSeeder extends Seeder
 
         Producto::query()->update(['stock_actual' => 200, 'stock_minimo' => 10]);
 
+        Correlativo::firstOrCreate(['tipo' => 'boleta'], ['ultimo' => 0]);
+        Correlativo::firstOrCreate(['tipo' => 'factura'], ['ultimo' => 0]);
+
         auth()->login($admin);
 
         $this->crearComprasDemo();

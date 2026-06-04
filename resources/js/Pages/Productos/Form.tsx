@@ -27,6 +27,7 @@ interface ProductoForm {
   stock_actual: number;
   stock_minimo: number;
   unidad_medida: string;
+  margen_utilidad: string;
   imagenes_nuevas: File[];
   imagenes_eliminar: number[];
   imagenes_orden: number[];
@@ -61,8 +62,9 @@ export default function Form({ producto, return_url, categorias = [] }: Props) {
     nombre: producto?.nombre ?? '',
     descripcion: producto?.descripcion ?? '',
     stock_actual: producto?.stock_actual ?? 0,
-    stock_minimo: producto?.stock_minimo ?? 0,
+    stock_minimo: producto?.stock_minimo ?? 10,
     unidad_medida: producto?.unidad_medida ?? 'unidad',
+    margen_utilidad: producto?.margen_utilidad ?? '30',
     imagenes_nuevas: [],
     imagenes_eliminar: [],
     imagenes_orden: [],
@@ -82,6 +84,14 @@ export default function Form({ producto, return_url, categorias = [] }: Props) {
   });
 
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const calcPrecioVenta = useCallback((compra: string, margen: string) => {
+    const c = parseFloat(compra);
+    const m = parseFloat(margen);
+    if (!isNaN(c) && !isNaN(m)) {
+      setData('precio_venta', (c * (1 + m / 100)).toFixed(2));
+    }
+  }, [setData]);
 
   const totalImages = ordered.length;
   const maxReached = totalImages >= 5;
@@ -307,20 +317,47 @@ export default function Form({ producto, return_url, categorias = [] }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="precio_compra" value="Precio de Compra" required />
+          <InputLabel htmlFor="precio_compra" value="Precio de Compra" optional />
           <TextInput
             id="precio_compra"
             type="number"
             step="0.01"
             value={data.precio_compra}
-            onChange={(e) => setData('precio_compra', e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setData('precio_compra', val);
+              calcPrecioVenta(val, data.margen_utilidad);
+            }}
             className="mt-1.5 block w-full"
           />
           <InputError message={errors.precio_compra} className="mt-2" />
         </div>
 
         <div>
-          <InputLabel htmlFor="precio_venta" value="Precio de Venta" required />
+          <InputLabel htmlFor="margen_utilidad" value="Margen de Utilidad" required />
+          <div className="relative mt-1.5">
+            <TextInput
+              id="margen_utilidad"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={data.margen_utilidad}
+              onChange={(e) => {
+                const val = e.target.value;
+                setData('margen_utilidad', val);
+                calcPrecioVenta(data.precio_compra, val);
+              }}
+              className="block w-full pr-8"
+            />
+            <span className="absolute inset-y-0 right-3 flex items-center text-slate-400 text-sm pointer-events-none">%</span>
+          </div>
+          <InputError message={errors.margen_utilidad} className="mt-2" />
+          <p className="text-xs text-slate-400 mt-1">Porcentaje de ganancia sobre el precio de compra.</p>
+        </div>
+
+        <div>
+          <InputLabel htmlFor="precio_venta" value="Precio de Venta" optional />
           <TextInput
             id="precio_venta"
             type="number"
@@ -333,7 +370,7 @@ export default function Form({ producto, return_url, categorias = [] }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="stock_actual" value="Stock Actual" required />
+          <InputLabel htmlFor="stock_actual" value="Stock Actual" optional />
           <TextInput
             id="stock_actual"
             type="number"
@@ -346,7 +383,7 @@ export default function Form({ producto, return_url, categorias = [] }: Props) {
         </div>
 
         <div>
-          <InputLabel htmlFor="stock_minimo" value="Stock Mínimo" required />
+          <InputLabel htmlFor="stock_minimo" value="Stock Mínimo" optional />
           <TextInput
             id="stock_minimo"
             type="number"
@@ -356,6 +393,7 @@ export default function Form({ producto, return_url, categorias = [] }: Props) {
             className="mt-1.5 block w-full"
           />
           <InputError message={errors.stock_minimo} className="mt-2" />
+          <p className="text-xs text-slate-400 mt-1">Se usa para mostrar alertas de stock bajo.</p>
         </div>
 
         <div>

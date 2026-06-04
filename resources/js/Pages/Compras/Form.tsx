@@ -281,7 +281,7 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                           </div>
                         </td>
                         <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300">
-                          Bs {prod?.precio_venta?.toFixed(2) ?? '0.00'}
+                          {prod?.precio_venta != null ? `Bs ${prod.precio_venta.toFixed(2)}` : '—'}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300">
                           {prod?.margen_utilidad?.toFixed(0) ?? '30'}%

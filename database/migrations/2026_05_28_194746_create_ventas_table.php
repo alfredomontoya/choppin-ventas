@@ -33,6 +33,9 @@ return new class extends Migration
             $table->foreignId('deleted_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes();
+            $table->index('tipo_comprobante');
+            $table->index('numero_comprobante');
+            $table->index('fecha_emision');
         });
     }
 

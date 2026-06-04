@@ -75,12 +75,12 @@ class Producto extends Model
             ->withTimestamps();
     }
 
-    public function getPrecioVentaAttribute(): float
+    public function getPrecioVentaAttribute(): ?float
     {
-        return (float) ($this->precios
+        return $this->precios
             ->where('fecha_inicio', '<=', now()->toDateString())
             ->where(fn ($q) => $q->whereNull('fecha_fin')->orWhere('fecha_fin', '>=', now()->toDateString()))
             ->sortByDesc('fecha_inicio')
-            ->first()?->precio_venta ?? 0);
+            ->first()?->precio_venta;
     }
 }

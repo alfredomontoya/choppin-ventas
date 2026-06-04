@@ -38,8 +38,8 @@ class ProductoService
     public function crear(array $data): Producto
     {
         $imagenesNuevas = $data['imagenes_nuevas'] ?? [];
-        $precioCompra = $data['precio_compra'] ?? null;
-        $precioVenta = $data['precio_venta'] ?? null;
+        $precioCompra = isset($data['precio_compra']) && $data['precio_compra'] !== '' ? (float) $data['precio_compra'] : null;
+        $precioVenta = isset($data['precio_venta']) && $data['precio_venta'] !== '' ? (float) $data['precio_venta'] : null;
         unset($data['imagenes_nuevas'], $data['imagenes_eliminar'], $data['imagenes_orden'], $data['precio_compra'], $data['precio_venta']);
 
         $producto = Producto::create($data);
@@ -49,8 +49,8 @@ class ProductoService
 
         if ($precioCompra !== null && $precioVenta !== null) {
             $producto->precios()->create([
-                'precio_compra' => (float) $precioCompra,
-                'precio_venta' => (float) $precioVenta,
+                'precio_compra' => $precioCompra,
+                'precio_venta' => $precioVenta,
                 'fecha_inicio' => now()->format('Y-m-d'),
             ]);
         }
@@ -65,8 +65,8 @@ class ProductoService
         $imagenesNuevas = $data['imagenes_nuevas'] ?? [];
         $imagenesEliminar = $data['imagenes_eliminar'] ?? [];
         $imagenesOrden = $data['imagenes_orden'] ?? [];
-        $precioCompra = $data['precio_compra'] ?? null;
-        $precioVenta = $data['precio_venta'] ?? null;
+        $precioCompra = isset($data['precio_compra']) && $data['precio_compra'] !== '' ? (float) $data['precio_compra'] : null;
+        $precioVenta = isset($data['precio_venta']) && $data['precio_venta'] !== '' ? (float) $data['precio_venta'] : null;
         unset($data['imagenes_nuevas'], $data['imagenes_eliminar'], $data['imagenes_orden'], $data['precio_compra'], $data['precio_venta']);
 
         $this->eliminarImagenes($producto, $imagenesEliminar);
@@ -76,7 +76,7 @@ class ProductoService
         $producto->update($data);
 
         if ($precioCompra !== null && $precioVenta !== null) {
-            $this->actualizarPrecio($producto, (float) $precioCompra, (float) $precioVenta);
+            $this->actualizarPrecio($producto, $precioCompra, $precioVenta);
         }
 
         return $producto->fresh(['imagenes', 'precios']);

@@ -65,7 +65,12 @@ class VentaService
                 ->filter(fn ($p) => $p->fecha_inicio->startOfDay()->lte(now()) && (! $p->fecha_fin || $p->fecha_fin->startOfDay()->gte(now())))
                 ->sortByDesc('fecha_inicio')
                 ->first();
-            $precio = $vigente?->precio_venta ?? 0;
+
+            if (! $vigente) {
+                throw new \RuntimeException("El producto {$producto->nombre} no tiene precio de venta configurado.");
+            }
+
+            $precio = $vigente->precio_venta;
             $cantidad = (float) $item['cantidad'];
 
             if ($producto->stock_actual < $cantidad) {

@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('codigo', 50)->unique();
             $table->string('nombre');
             $table->text('descripcion')->nullable();
-            $table->string('imagen')->nullable();
             $table->decimal('stock_actual', 10, 2)->default(0);
             $table->decimal('stock_minimo', 10, 2)->default(0);
             $table->string('unidad_medida', 50)->default('unidad');
+            $table->decimal('margen_utilidad', 5, 2)->default(30.00);
             $table->boolean('activo')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');

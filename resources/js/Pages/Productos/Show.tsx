@@ -38,7 +38,7 @@ export default function Show({ producto, esAdmin }: { producto: any; esAdmin?: b
       .sort((a: any, b: any) => b.fecha_inicio.localeCompare(a.fecha_inicio))[0] ?? null;
   })();
 
-  const currency = (n: number) => {
+  const currency = (n: number | null | undefined) => {
     if (n == null || isNaN(n)) return '—';
     return `Bs ${Number(n).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
@@ -48,8 +48,9 @@ export default function Show({ producto, esAdmin }: { producto: any; esAdmin?: b
     { label: 'Nombre', value: producto.nombre },
     { label: 'Categoría', value: producto.categoria?.nombre ?? '—' },
     { label: 'Descripción', value: producto.descripcion || '—' },
-    { label: 'Precio de Compra', value: currency(vigente?.precio_compra) },
-    { label: 'Precio de Venta', value: currency(vigente?.precio_venta) },
+    { label: 'Precio de Compra', value: vigente ? currency(vigente?.precio_compra) : 'Sin precio' },
+    { label: 'Precio de Venta', value: vigente ? currency(vigente?.precio_venta) : 'Sin precio' },
+    { label: 'Margen de Utilidad', value: `${Number(producto.margen_utilidad ?? 30).toFixed(0)}% · Sobre el precio de compra` },
     { label: 'Stock Actual', value: producto.stock_actual },
     { label: 'Stock Mínimo', value: producto.stock_minimo },
     { label: 'Unidad de Medida', value: producto.unidad_medida },

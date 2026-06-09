@@ -6,7 +6,7 @@ import FavoritosGrid from '@/Components/ui/FavoritosGrid';
 import Modal from '@/Components/Modal';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { getReturnUrl } from '@/lib/navigation';
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 
 interface ClienteOption {
@@ -55,6 +55,9 @@ export default function Form({ venta, return_url, clientes, productos, productos
     })) ?? [] as { producto_id: number; cantidad: number }[],
     return_url: return_url ?? getReturnUrl(route('ventas.index')),
   });
+
+  const detallesRef = useRef(data.detalles);
+  detallesRef.current = data.detalles;
 
   const getPrecioVenta = useCallback((producto: ProductoOption): number => {
     if (producto.precio_venta !== undefined) return Number(producto.precio_venta);
@@ -107,19 +110,21 @@ export default function Form({ venta, return_url, clientes, productos, productos
   const agregarODimensionar = (productoId: number, cantidad: number = 1) => {
     const prod = productoMap.get(productoId);
     if (!prod) return;
-    const idx = data.detalles.findIndex((d: { producto_id: number }) => d.producto_id === productoId);
-    const nuevaCant = idx >= 0 ? data.detalles[idx].cantidad + cantidad : cantidad;
+    const current = detallesRef.current;
+    const idx = current.findIndex((d: { producto_id: number }) => d.producto_id === productoId);
+    const nuevaCant = idx >= 0 ? current[idx].cantidad + cantidad : cantidad;
     if (nuevaCant > prod.stock_actual) {
       toast.error(`Stock insuficiente para ${prod.nombre}. Disponible: ${prod.stock_actual}`);
       return;
     }
+    const nuevos = [...current] as { producto_id: number; cantidad: number }[];
     if (idx >= 0) {
-      const nuevos = [...data.detalles] as { producto_id: number; cantidad: number }[];
       nuevos[idx] = { ...nuevos[idx], cantidad: nuevaCant };
-      setData('detalles', nuevos);
     } else {
-      setData('detalles', [...data.detalles, { producto_id: productoId, cantidad }]);
+      nuevos.push({ producto_id: productoId, cantidad });
     }
+    detallesRef.current = nuevos;
+    setData('detalles', nuevos);
   };
 
   const handleSelectProducto = (producto: ProductoOption) => {
@@ -432,9 +437,8 @@ export default function Form({ venta, return_url, clientes, productos, productos
                         <td className="px-3 py-2 text-right">
                           <input
                             type="number"
-                            min="0.01"
-                            max={d.stock_actual}
-                            step="0.01"
+                            min="0"
+                            step="1"
                             value={d.cantidad}
                             onChange={(e) => actualizarCantidad(i, parseFloat(e.target.value) || 0)}
                             className={`w-16 text-right rounded-lg border text-sm px-2 py-1 focus:outline-none focus:ring-2 ${

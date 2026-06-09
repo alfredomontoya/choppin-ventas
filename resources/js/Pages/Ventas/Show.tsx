@@ -125,23 +125,6 @@ export default function Show({ venta }: { venta: any }) {
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={3} className="px-4 py-1 text-right text-xs text-slate-400">
-                    Base IVA
-                  </td>
-                  <td className="px-4 py-1 text-right text-xs text-slate-400">
-                    {currency(Number(venta.subtotal) - Number(venta.descuento))}
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={3} className="px-4 py-1 text-right text-sm text-slate-500">
-                    IVA (13%)
-                    {!venta.con_iva && <span className="text-xs text-slate-400 ml-1">(exento)</span>}
-                  </td>
-                  <td className="px-4 py-1 text-right text-sm text-slate-500">
-                    {currency(Number(venta.iva))}
-                  </td>
-                </tr>
-                <tr>
                   <td colSpan={3} className="px-4 py-3 text-right text-base font-bold text-slate-900 dark:text-white">
                     Total
                   </td>

@@ -87,10 +87,8 @@ export default function Form({ venta, return_url, clientes, productos, productos
 
   const subtotal = detalleConInfo.reduce((sum: number, d: { subtotal: number }) => sum + d.subtotal, 0);
   const descuentoNum = Number(data.descuento) || 0;
-  const baseIva = subtotal - descuentoNum;
-  const ivaTasa = 0.13;
-  const ivaAmount = data.con_iva ? baseIva * ivaTasa : 0;
-  const total = Math.round((baseIva + ivaAmount) * 100) / 100;
+  const base = subtotal - descuentoNum;
+  const total = data.con_iva ? Math.round(base * 100) / 100 : Math.round(base * 0.87 * 100) / 100;
 
   useEffect(() => {
     if (erroresLocal.tipo_comprobante && data.tipo_comprobante) {
@@ -487,24 +485,6 @@ export default function Form({ venta, return_url, clientes, productos, productos
                         <td></td>
                       </tr>
                     )}
-                    <tr>
-                      <td colSpan={3} className="px-3 py-1 text-right text-xs text-slate-400">
-                        Base IVA (subtotal - descuento)
-                      </td>
-                      <td className="px-3 py-1 text-right text-xs text-slate-400">
-                        Bs {baseIva.toFixed(2)}
-                      </td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td colSpan={3} className="px-3 py-1 text-right text-sm text-slate-500">
-                        IVA (13%)
-                      </td>
-                      <td className="px-3 py-1 text-right text-sm text-slate-500">
-                        Bs {ivaAmount.toFixed(2)}
-                      </td>
-                      <td></td>
-                    </tr>
                     <tr>
                       <td colSpan={3} className="px-3 py-2 text-right text-base font-bold text-slate-900 dark:text-white">
                         Total

@@ -90,8 +90,9 @@ class VentaService
             ];
         }
 
-        $iva = $conIva ? ($subtotal - $descuento) * $ivaRate : 0;
-        $total = $subtotal - $descuento + $iva;
+        $base = $subtotal - $descuento;
+        $total = $conIva ? $base : round($base * (1 - $ivaRate), 2);
+        $iva = $conIva ? round($total * $ivaRate / (1 + $ivaRate), 2) : 0;
 
         return \DB::transaction(function () use ($detallesData, $productosMap, $tipoComprobante, $tipoPago, $clienteId, $descuento, $montoRecibido, $cambio, $observaciones, $subtotal, $iva, $total, $conIva) {
             $numeroComprobante = $this->generarComprobante($tipoComprobante);

@@ -369,9 +369,12 @@ export default function Form({ venta, return_url, clientes, productos, productos
                       <p className="text-xs text-slate-400 truncate">{producto.categoria?.nombre ?? ''}</p>
                       <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{producto.nombre}</p>
                     </div>
-                    <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
-                      Bs {getPrecioVenta(producto).toFixed(2)}
-                    </p>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                        Bs {getPrecioVenta(producto).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-slate-400">Stock: {producto.stock_actual}</p>
+                    </div>
                   </div>
                 )}
                 onSelect={handleSelectProducto}

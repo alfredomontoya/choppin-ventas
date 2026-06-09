@@ -46,8 +46,9 @@ class VentaService
         ?float $montoRecibido = null,
         ?float $cambio = null,
         ?string $observaciones = null,
+        bool $conIva = true,
     ): Venta {
-        $igvRate = (float) config('ventas.igv_rate', 0.13);
+        $ivaRate = (float) config('ventas.iva_rate', 0.13);
         $subtotal = 0;
 
         $productosIds = array_column($detalles, 'producto_id');
@@ -89,10 +90,10 @@ class VentaService
             ];
         }
 
-        $igv = ($subtotal - $descuento) * $igvRate;
-        $total = $subtotal - $descuento + $igv;
+        $iva = $conIva ? ($subtotal - $descuento) * $ivaRate : 0;
+        $total = $subtotal - $descuento + $iva;
 
-        return \DB::transaction(function () use ($detallesData, $productosMap, $tipoComprobante, $tipoPago, $clienteId, $descuento, $montoRecibido, $cambio, $observaciones, $subtotal, $igv, $total) {
+        return \DB::transaction(function () use ($detallesData, $productosMap, $tipoComprobante, $tipoPago, $clienteId, $descuento, $montoRecibido, $cambio, $observaciones, $subtotal, $iva, $total, $conIva) {
             $numeroComprobante = $this->generarComprobante($tipoComprobante);
 
             $venta = Venta::create([
@@ -102,7 +103,8 @@ class VentaService
                 'tipo_comprobante' => $tipoComprobante,
                 'fecha_emision' => now(),
                 'subtotal' => $subtotal,
-                'igv' => $igv,
+                'iva' => $iva,
+                'con_iva' => $conIva,
                 'descuento' => $descuento,
                 'total' => $total,
                 'monto_recibido' => $montoRecibido,

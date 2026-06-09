@@ -138,7 +138,7 @@ class OrdenCompraService
         array $detalles,
         ?string $observaciones = null,
     ): OrdenCompra {
-        $igvRate = 0.18;
+        $ivaRate = 0.18;
         $subtotal = 0;
 
         $detallesData = [];
@@ -157,10 +157,10 @@ class OrdenCompraService
             ];
         }
 
-        $igv = $subtotal * $igvRate;
-        $total = $subtotal + $igv;
+        $iva = $subtotal * $ivaRate;
+        $total = $subtotal + $iva;
 
-        return \DB::transaction(function () use ($detallesData, $proveedorId, $tipoComprobante, $observaciones, $subtotal, $igv, $total) {
+        return \DB::transaction(function () use ($detallesData, $proveedorId, $tipoComprobante, $observaciones, $subtotal, $iva, $total) {
             $orden = OrdenCompra::create([
                 'proveedor_id' => $proveedorId,
                 'user_id' => auth()->id(),
@@ -168,7 +168,7 @@ class OrdenCompraService
                 'tipo_comprobante' => $tipoComprobante,
                 'fecha_emision' => now(),
                 'subtotal' => $subtotal,
-                'igv' => $igv,
+                'iva' => $iva,
                 'total' => $total,
                 'observaciones' => $observaciones,
                 'estado' => 'pendiente',

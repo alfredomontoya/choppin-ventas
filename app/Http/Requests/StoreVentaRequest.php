@@ -20,6 +20,7 @@ class StoreVentaRequest extends FormRequest
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
             'tipo_comprobante' => ['required', Rule::in(['boleta', 'factura'])],
             'tipo_pago' => ['required', Rule::in(['efectivo', 'tarjeta', 'transferencia', 'qr'])],
+            'con_iva' => ['nullable', 'boolean'],
             'descuento' => ['nullable', 'numeric', 'min:0'],
             'monto_recibido' => ['nullable', 'numeric', 'min:0'],
             'cambio' => ['nullable', 'numeric', 'min:0'],

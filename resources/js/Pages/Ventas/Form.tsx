@@ -44,6 +44,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
     cliente_id: venta?.cliente_id ?? null,
     tipo_comprobante: venta?.tipo_comprobante ?? 'boleta',
     tipo_pago: venta?.tipo_pago ?? 'efectivo',
+    con_iva: venta?.con_iva ?? true,
     descuento: venta?.descuento ?? 0,
     monto_recibido: venta?.monto_recibido ?? '',
     cambio: venta?.cambio ?? '',
@@ -82,7 +83,10 @@ export default function Form({ venta, return_url, clientes, productos, productos
 
   const subtotal = detalleConInfo.reduce((sum: number, d: { subtotal: number }) => sum + d.subtotal, 0);
   const descuentoNum = Number(data.descuento) || 0;
-  const total = subtotal - descuentoNum;
+  const baseIva = subtotal - descuentoNum;
+  const ivaTasa = 0.13;
+  const ivaAmount = data.con_iva ? baseIva * ivaTasa : 0;
+  const total = baseIva + ivaAmount;
 
   useEffect(() => {
     if (erroresLocal.tipo_comprobante && data.tipo_comprobante) {
@@ -290,6 +294,34 @@ export default function Form({ venta, return_url, clientes, productos, productos
               <InputError message={errors.tipo_pago} className="mt-2" />
             </div>
 
+            {/* Con IVA / Sin IVA */}
+            <div>
+              <InputLabel value="¿Incluir IVA?" required />
+              <div className="mt-1.5 flex flex-wrap gap-3">
+                {[
+                  { value: true, label: 'Con IVA' },
+                  { value: false, label: 'Sin IVA' },
+                ].map((op) => (
+                  <label
+                    key={String(op.value)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all text-sm ${
+                      data.con_iva === op.value
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                        : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="con_iva"
+                      checked={data.con_iva === op.value}
+                      onChange={() => setData('con_iva', op.value)}
+                      className="accent-indigo-600"
+                    />
+                    {op.label}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* SECCIÓN 2: Productos */}
@@ -424,6 +456,24 @@ export default function Form({ venta, return_url, clientes, productos, productos
                         <td></td>
                       </tr>
                     )}
+                    <tr>
+                      <td colSpan={3} className="px-3 py-1 text-right text-xs text-slate-400">
+                        Base IVA (subtotal - descuento)
+                      </td>
+                      <td className="px-3 py-1 text-right text-xs text-slate-400">
+                        Bs {baseIva.toFixed(2)}
+                      </td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td colSpan={3} className="px-3 py-1 text-right text-sm text-slate-500">
+                        IVA (13%)
+                      </td>
+                      <td className="px-3 py-1 text-right text-sm text-slate-500">
+                        Bs {ivaAmount.toFixed(2)}
+                      </td>
+                      <td></td>
+                    </tr>
                     <tr>
                       <td colSpan={3} className="px-3 py-2 text-right text-base font-bold text-slate-900 dark:text-white">
                         Total

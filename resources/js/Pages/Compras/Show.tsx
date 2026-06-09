@@ -227,10 +227,10 @@ export default function Show({ orden }: { orden: any }) {
                 </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-1 text-right text-sm text-slate-500">
-                    IGV (18%)
+                    IVA (18%)
                   </td>
                   <td className="px-4 py-1 text-right text-sm text-slate-500">
-                    {currency(Number(orden.igv))}
+                    {currency(Number(orden.iva))}
                   </td>
                 </tr>
                 <tr>

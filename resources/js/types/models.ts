@@ -77,7 +77,8 @@ export interface Venta {
   fecha_emision: string;
   moneda: string;
   subtotal: number;
-  igv: number;
+  iva: number;
+  con_iva: boolean;
   descuento: number;
   total: number;
   tipo_pago: string;
@@ -108,7 +109,7 @@ export interface OrdenCompra {
   fecha_emision: string;
   moneda: string;
   subtotal: number;
-  igv: number;
+  iva: number;
   total: number;
   observaciones: string | null;
   estado: string;
@@ -157,7 +158,7 @@ export interface ReporteVenta {
   fecha_emision: string;
   moneda: string;
   subtotal: number;
-  igv: number;
+  iva: number;
   descuento: number;
   total: number;
   tipo_pago: string;
@@ -167,7 +168,7 @@ export interface ReporteVenta {
 export interface ReporteVentasResumen {
   total_ventas: number;
   subtotal: number;
-  igv: number;
+  iva: number;
   descuento: number;
   total_ingresos: number;
 }
@@ -183,7 +184,7 @@ export interface ReporteCompra {
   fecha_emision: string;
   moneda: string;
   subtotal: number;
-  igv: number;
+  iva: number;
   total: number;
   estado: string;
 }
@@ -191,7 +192,7 @@ export interface ReporteCompra {
 export interface ReporteComprasResumen {
   total_compras: number;
   subtotal: number;
-  igv: number;
+  iva: number;
   total_gastos: number;
 }
 

@@ -18,7 +18,7 @@ const columnas = [
   { key: 'numero_comprobante', label: 'Comprobante' },
   { key: 'proveedor', label: 'Proveedor', render: (v: ReporteCompra) => v.proveedor?.nombre || '—' },
   { key: 'subtotal', label: 'Subtotal', render: (v: ReporteCompra) => `Bs ${Number(v.subtotal).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
-  { key: 'igv', label: 'IGV', render: (v: ReporteCompra) => `Bs ${Number(v.igv).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
+  { key: 'iva', label: 'IVA', render: (v: ReporteCompra) => `Bs ${Number(v.iva).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
   { key: 'total', label: 'Total', render: (v: ReporteCompra) => `Bs ${Number(v.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
   {
     key: 'estado', label: 'Estado', render: (v: ReporteCompra) => {
@@ -93,8 +93,8 @@ export default function Compras({ data, resumen, filtros }: Props) {
             <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">Bs {resumen.subtotal.toLocaleString('es-BO', { minimumFractionDigits: 2 })}</p>
           </div>
           <div className="p-4 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">IGV</p>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">Bs {resumen.igv.toLocaleString('es-BO', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">IVA</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">Bs {resumen.iva.toLocaleString('es-BO', { minimumFractionDigits: 2 })}</p>
           </div>
           <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
             <p className="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide">Total Gastos</p>
@@ -150,7 +150,7 @@ export default function Compras({ data, resumen, filtros }: Props) {
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{item.numero_comprobante}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.proveedor?.nombre || '—'}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.subtotal).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.igv).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.iva).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right font-semibold">Bs {Number(item.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${

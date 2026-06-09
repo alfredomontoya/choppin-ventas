@@ -26,7 +26,7 @@ const columnas = [
   { key: 'cliente', label: 'Cliente', render: (v: ReporteVenta) => v.cliente ? v.cliente.nombre : '—' },
   { key: 'tipo_pago', label: 'Pago', render: (v: ReporteVenta) => v.tipo_pago.charAt(0).toUpperCase() + v.tipo_pago.slice(1) },
   { key: 'subtotal', label: 'Subtotal', render: (v: ReporteVenta) => `Bs ${Number(v.subtotal).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
-  { key: 'igv', label: 'IGV', render: (v: ReporteVenta) => `Bs ${Number(v.igv).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
+  { key: 'iva', label: 'IVA', render: (v: ReporteVenta) => `Bs ${Number(v.iva).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
   { key: 'descuento', label: 'Dto.', render: (v: ReporteVenta) => `Bs ${Number(v.descuento).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
   { key: 'total', label: 'Total', render: (v: ReporteVenta) => `Bs ${Number(v.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })}` },
 ];
@@ -93,8 +93,8 @@ export default function Ventas({ data, resumen, filtros }: Props) {
             <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">Bs {resumen.subtotal.toLocaleString('es-BO', { minimumFractionDigits: 2 })}</p>
           </div>
           <div className="p-4 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">IGV</p>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">Bs {resumen.igv.toLocaleString('es-BO', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">IVA</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">Bs {resumen.iva.toLocaleString('es-BO', { minimumFractionDigits: 2 })}</p>
           </div>
           <div className="p-4 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Descuento</p>
@@ -167,7 +167,7 @@ export default function Ventas({ data, resumen, filtros }: Props) {
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.cliente ? item.cliente.nombre : '—'}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{item.tipo_pago.charAt(0).toUpperCase() + item.tipo_pago.slice(1)}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.subtotal).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.igv).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.iva).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right">Bs {Number(item.descuento).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-right font-semibold">Bs {Number(item.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })}</td>
                     </tr>

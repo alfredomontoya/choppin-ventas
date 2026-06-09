@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'igv_rate' => env('VENTA_IGV_RATE', 0.13),
+    'iva_rate' => env('VENTA_IVA_RATE', 0.13),
 
     'store' => [
         'name' => env('STORE_NAME', 'Nombre de tu Tienda'),

@@ -48,7 +48,7 @@ class ReporteService
         $resumen = [
             'total_ventas' => $total,
             'subtotal' => (float) $resumenQuery->sum('subtotal'),
-            'igv' => (float) $resumenQuery->sum('igv'),
+            'iva' => (float) $resumenQuery->sum('iva'),
             'descuento' => (float) $resumenQuery->sum('descuento'),
             'total_ingresos' => (float) $resumenQuery->sum('total'),
         ];
@@ -97,7 +97,7 @@ class ReporteService
         $resumen = [
             'total_compras' => $total,
             'subtotal' => (float) $resumenQuery->sum('subtotal'),
-            'igv' => (float) $resumenQuery->sum('igv'),
+            'iva' => (float) $resumenQuery->sum('iva'),
             'total_gastos' => (float) $resumenQuery->sum('total'),
         ];
 

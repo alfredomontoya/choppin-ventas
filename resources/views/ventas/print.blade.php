@@ -114,6 +114,14 @@
       <span>-{{ number_format($venta->descuento, 2) }}</span>
     </div>
     @endif
+    <div class="line" style="font-size:10px;color:#666;">
+      <span>Base IVA</span>
+      <span>{{ number_format($venta->subtotal - $venta->descuento, 2) }}</span>
+    </div>
+    <div class="line" style="font-size:11px;">
+      <span>IVA {{ $venta->con_iva ? '(13%)' : '(exento)' }}</span>
+      <span>{{ number_format($venta->iva, 2) }}</span>
+    </div>
     <div class="line total-final">
       <span>TOTAL</span>
       <span>{{ number_format($venta->total, 2) }}</span>

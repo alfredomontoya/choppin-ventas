@@ -60,8 +60,8 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
   });
 
   const subtotal = detalleConInfo.reduce((sum: number, d: { subtotal: number }) => sum + d.subtotal, 0);
-  const igv = subtotal * 0.18;
-  const total = subtotal + igv;
+  const iva = subtotal * 0.18;
+  const total = subtotal + iva;
 
   const agregarProducto = (productoId: number, cantidad: number = 1, precio: number = 0) => {
     const idx = data.detalles.findIndex((d: { producto_id: number }) => d.producto_id === productoId);
@@ -333,10 +333,10 @@ export default function Form({ orden, return_url, proveedores, productos }: Prop
                     </tr>
                     <tr>
                       <td colSpan={5} className="px-3 py-1 text-right text-sm text-slate-500">
-                        IGV (18%)
+                        IVA (18%)
                       </td>
                       <td className="px-3 py-1 text-right text-sm text-slate-500">
-                        Bs {igv.toFixed(2)}
+                        Bs {iva.toFixed(2)}
                       </td>
                       <td></td>
                     </tr>

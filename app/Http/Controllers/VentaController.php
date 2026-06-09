@@ -69,6 +69,7 @@ class VentaController extends Controller
             montoRecibido: isset($data['monto_recibido']) ? (float) $data['monto_recibido'] : null,
             cambio: isset($data['cambio']) ? (float) $data['cambio'] : null,
             observaciones: $data['observaciones'] ?? null,
+            conIva: (bool) ($data['con_iva'] ?? true),
         );
 
         return redirect()->route('ventas.show', $venta->id)

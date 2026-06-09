@@ -27,7 +27,7 @@ class OrdenCompra extends Model
         'moneda',
         'tipo_cambio',
         'subtotal',
-        'igv',
+        'iva',
         'total',
         'observaciones',
         'estado',
@@ -39,7 +39,7 @@ class OrdenCompra extends Model
             'fecha_emision' => 'datetime',
             'tipo_cambio' => 'decimal:4',
             'subtotal' => 'decimal:2',
-            'igv' => 'decimal:2',
+            'iva' => 'decimal:2',
             'total' => 'decimal:2',
         ];
     }

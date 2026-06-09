@@ -76,6 +76,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
       nombre: p?.nombre ?? '—',
       codigo: p?.codigo ?? '',
       imagen: p?.imagen ?? null,
+      stock_actual: p?.stock_actual ?? 0,
       precio_unitario: p ? getPrecioVenta(p) : 0,
       subtotal: p ? getPrecioVenta(p) * d.cantidad : 0,
     };
@@ -104,10 +105,17 @@ export default function Form({ venta, return_url, clientes, productos, productos
   }, [data.tipo_comprobante, data.tipo_pago, data.detalles.length]);
 
   const agregarODimensionar = (productoId: number, cantidad: number = 1) => {
+    const prod = productoMap.get(productoId);
+    if (!prod) return;
     const idx = data.detalles.findIndex((d: { producto_id: number }) => d.producto_id === productoId);
+    const nuevaCant = idx >= 0 ? data.detalles[idx].cantidad + cantidad : cantidad;
+    if (nuevaCant > prod.stock_actual) {
+      toast.error(`Stock insuficiente para ${prod.nombre}. Disponible: ${prod.stock_actual}`);
+      return;
+    }
     if (idx >= 0) {
       const nuevos = [...data.detalles] as { producto_id: number; cantidad: number }[];
-      nuevos[idx] = { ...nuevos[idx], cantidad: nuevos[idx].cantidad + cantidad };
+      nuevos[idx] = { ...nuevos[idx], cantidad: nuevaCant };
       setData('detalles', nuevos);
     } else {
       setData('detalles', [...data.detalles, { producto_id: productoId, cantidad }]);
@@ -139,8 +147,13 @@ export default function Form({ venta, return_url, clientes, productos, productos
   };
 
   const actualizarCantidad = (index: number, nuevaCantidad: number) => {
+    const prod = productoMap.get(data.detalles[index].producto_id);
+    const clamped = Math.min(nuevaCantidad, prod?.stock_actual ?? nuevaCantidad);
+    if (clamped !== nuevaCantidad) {
+      toast.error(`Stock máximo disponible: ${prod?.stock_actual}`);
+    }
     const nuevos = [...data.detalles] as { producto_id: number; cantidad: number }[];
-    nuevos[index] = { ...nuevos[index], cantidad: nuevaCantidad };
+    nuevos[index] = { ...nuevos[index], cantidad: clamped };
     setData('detalles', nuevos);
   };
 
@@ -404,7 +417,10 @@ export default function Form({ venta, return_url, clientes, productos, productos
                                 <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">✕</div>
                               )}
                             </div>
-                            <span className="truncate">{d.codigo} — {d.nombre}</span>
+                            <div className="min-w-0">
+                              <div className="truncate text-sm">{d.codigo} — {d.nombre}</div>
+                              <div className="text-xs text-slate-400">Stock: {d.stock_actual}</div>
+                            </div>
                           </div>
                         </td>
                         <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300">
@@ -414,11 +430,19 @@ export default function Form({ venta, return_url, clientes, productos, productos
                           <input
                             type="number"
                             min="0.01"
+                            max={d.stock_actual}
                             step="0.01"
                             value={d.cantidad}
                             onChange={(e) => actualizarCantidad(i, parseFloat(e.target.value) || 0)}
-                            className="w-16 text-right rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-2 py-1 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`w-16 text-right rounded-lg border text-sm px-2 py-1 focus:outline-none focus:ring-2 ${
+                              d.cantidad > d.stock_actual
+                                ? 'border-red-500 ring-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:ring-indigo-500'
+                            }`}
                           />
+                          {d.cantidad > d.stock_actual && (
+                            <div className="text-xs text-red-500 mt-0.5">Máx: {d.stock_actual}</div>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-700 dark:text-slate-300 font-medium">
                           Bs {d.subtotal.toFixed(2)}

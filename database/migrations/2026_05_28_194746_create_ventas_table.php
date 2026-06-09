@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('moneda', 3)->default('BOB');
             $table->decimal('tipo_cambio', 10, 4)->default(1);
             $table->decimal('subtotal', 10, 2);
-            $table->decimal('igv', 10, 2);
+            $table->decimal('iva', 10, 2);
+            $table->boolean('con_iva')->default(true);
             $table->decimal('descuento', 10, 2)->default(0);
             $table->decimal('total', 10, 2);
             $table->decimal('monto_recibido', 10, 2)->nullable();

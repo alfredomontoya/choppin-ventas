@@ -90,7 +90,7 @@ export default function Form({ venta, return_url, clientes, productos, productos
   const baseIva = subtotal - descuentoNum;
   const ivaTasa = 0.13;
   const ivaAmount = data.con_iva ? baseIva * ivaTasa : 0;
-  const total = baseIva + ivaAmount;
+  const total = Math.round((baseIva + ivaAmount) * 100) / 100;
 
   useEffect(() => {
     if (erroresLocal.tipo_comprobante && data.tipo_comprobante) {
